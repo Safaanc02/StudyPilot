@@ -1,12 +1,13 @@
 "use client"
 import { useState } from "react"
+import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers, Loader2, Youtube } from "lucide-react"
+import { Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers, Loader2, Youtube, ExternalLink } from "lucide-react"
 
 interface StudyMaterials {
   summary: string
@@ -17,16 +18,27 @@ interface StudyMaterials {
   topics: string[]
 }
 
+interface YoutubeVideo {
+  id: string
+  title: string
+  channel: string
+  thumbnail: string
+  url: string
+}
+
 export default function LessonAIPage() {
   const [inputText, setInputText] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [materials, setMaterials] = useState<StudyMaterials | null>(null)
   const [activeFlashcard, setActiveFlashcard] = useState(0)
   const [flipped, setFlipped] = useState(false)
+  const [videos, setVideos] = useState<YoutubeVideo[]>([])
+  const [loadingVideos, setLoadingVideos] = useState(false)
 
   const handleProcess = async () => {
     if (!inputText.trim()) return
     setIsProcessing(true)
+    setVideos([])
     try {
       const res = await fetch("/api/lesson-ai", {
         method: "POST",
@@ -58,6 +70,21 @@ export default function LessonAIPage() {
       if (data.text) setInputText(data.text)
     } finally {
       setIsProcessing(false)
+    }
+  }
+
+  const handleLoadVideos = async () => {
+    if (!materials?.topics?.length) return
+    setLoadingVideos(true)
+    try {
+      const query = materials.topics.slice(0, 3).join(" ")
+      const res = await fetch(`/api/youtube?q=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      if (data.videos) setVideos(data.videos)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingVideos(false)
     }
   }
 
@@ -124,7 +151,7 @@ export default function LessonAIPage() {
               <TabsTrigger value="concepts" className="text-xs"><Brain className="h-3 w-3 mr-1" />Concepts</TabsTrigger>
               <TabsTrigger value="questions" className="text-xs"><HelpCircle className="h-3 w-3 mr-1" />Questions</TabsTrigger>
               <TabsTrigger value="flashcards" className="text-xs"><Layers className="h-3 w-3 mr-1" />Flashcards</TabsTrigger>
-              <TabsTrigger value="videos" className="text-xs"><Youtube className="h-3 w-3 mr-1" />Videos</TabsTrigger>
+              <TabsTrigger value="videos" className="text-xs" onClick={handleLoadVideos}><Youtube className="h-3 w-3 mr-1" />Videos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -202,11 +229,54 @@ export default function LessonAIPage() {
             <TabsContent value="videos">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Recommended Learning Videos</CardTitle>
-                  <CardDescription>Topics extracted: {materials.topics.join(", ")}</CardDescription>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Youtube className="h-4 w-4 text-red-500" />
+                    Recommended Learning Videos
+                  </CardTitle>
+                  <CardDescription>Topics: {materials.topics.join(", ")}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">Video recommendations require a YouTube API key. Topics to search: <strong>{materials.topics.join(", ")}</strong></p>
+                  {loadingVideos ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : videos.length > 0 ? (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {videos.map((video) => (
+                        <a
+                          key={video.id}
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group rounded-lg border overflow-hidden hover:border-primary transition-colors"
+                        >
+                          <div className="relative aspect-video bg-muted">
+                            <Image
+                              src={video.thumbnail}
+                              alt={video.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">{video.title}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-xs text-muted-foreground">{video.channel}</p>
+                              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Youtube className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground">Click the Videos tab to load recommendations</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={handleLoadVideos}>
+                        Load Videos
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
