@@ -1,65 +1,134 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  BookOpen, Zap, Calendar, ClipboardList, FileText,
+  UserCircle, Briefcase, StickyNote, ArrowRight, Check
+} from "lucide-react"
 
-export default function Home() {
+const features = [
+  { icon: Zap, title: "AI Lesson Tool", description: "Upload PDFs and get summaries, flashcards, and exam questions instantly", premium: true },
+  { icon: Calendar, title: "Study Planner", description: "Plan your study sessions with exam countdowns and Pomodoro timer", premium: false },
+  { icon: ClipboardList, title: "Assignment Manager", description: "Track homework, projects, and deadlines in one place", premium: false },
+  { icon: FileText, title: "PDF Tools", description: "Merge, split, compress, and convert PDFs effortlessly", premium: true },
+  { icon: UserCircle, title: "Resume Builder", description: "Create professional CVs with modern templates", premium: true },
+  { icon: Briefcase, title: "Internship Tracker", description: "Track job applications, interviews, and offer statuses", premium: true },
+  { icon: StickyNote, title: "Notes & Flashcards", description: "Create notes and auto-generate flashcards for revision", premium: false },
+]
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Nav */}
+      <nav className="border-b">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" />
+              <span className="text-lg font-bold">Student Toolkit</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button>Get Started Free</Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </nav>
+
+      {/* Hero */}
+      <section className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <Badge variant="secondary" className="mb-4">AI-Powered Student Platform</Badge>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+          Study smarter,{" "}
+          <span className="text-primary">not harder</span>
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          Upload your lessons and let AI generate summaries, flashcards, and exam questions.
+          Manage assignments, track internships, and build your resume — all in one place.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-4">
+          <Link href="/dashboard">
+            <Button size="lg" className="gap-2">
+              Start for Free <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/lesson-ai">
+            <Button size="lg" variant="outline">
+              Try AI Lesson Tool
+            </Button>
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => {
+            const Icon = feature.icon
+            return (
+              <Card key={feature.title} className="relative">
+                {feature.premium && (
+                  <Badge className="absolute right-4 top-4" variant="secondary">Pro</Badge>
+                )}
+                <CardHeader>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">{feature.title}</CardTitle>
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="border-t bg-muted/50 py-24">
+        <div className="mx-auto max-w-4xl px-4">
+          <h2 className="text-center text-3xl font-bold mb-12">Simple Pricing</h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Free</CardTitle>
+                <div className="text-3xl font-bold">$0<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {["Study Planner", "Assignment Manager", "Basic Notes", "Flashcards"].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-green-500" /> {f}
+                  </div>
+                ))}
+                <Link href="/dashboard" className="block mt-4">
+                  <Button variant="outline" className="w-full">Get Started</Button>
+                </Link>
+              </CardContent>
+            </Card>
+            <Card className="border-primary">
+              <CardHeader>
+                <Badge className="w-fit mb-2">Most Popular</Badge>
+                <CardTitle>Pro</CardTitle>
+                <div className="text-3xl font-bold">$9<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {["Everything in Free", "AI Lesson Processing", "Advanced PDF Tools", "Resume Builder", "Internship Tracker"].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-green-500" /> {f}
+                  </div>
+                ))}
+                <Link href="/upgrade" className="block mt-4">
+                  <Button className="w-full">Upgrade to Pro</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
 }
