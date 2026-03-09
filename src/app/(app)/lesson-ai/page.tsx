@@ -34,6 +34,10 @@ export default function LessonAIPage() {
         body: JSON.stringify({ text: inputText }),
       })
       const data = await res.json()
+      if (!res.ok || data.error) {
+        console.error("API error:", data.error)
+        return
+      }
       setMaterials(data)
     } catch (err) {
       console.error(err)
