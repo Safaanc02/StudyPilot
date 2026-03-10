@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers, Loader2, Youtube, ExternalLink } from "lucide-react"
+import { Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers, Loader2, Youtube, ExternalLink, History, ChevronRight } from "lucide-react"
 
 interface StudyMaterials {
   summary: string
@@ -16,6 +16,14 @@ interface StudyMaterials {
   shortAnswer: { question: string; answer: string }[]
   flashcards: { front: string; back: string }[]
   topics: string[]
+}
+
+interface HistoryItem {
+  id: string
+  title: string
+  inputText: string
+  result: StudyMaterials
+  createdAt: string
 }
 
 interface YoutubeVideo {
@@ -35,12 +43,22 @@ export default function LessonAIPage() {
   const [videos, setVideos] = useState<YoutubeVideo[]>([])
   const [loadingVideos, setLoadingVideos] = useState(false)
   const [videoError, setVideoError] = useState("")
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/lesson-ai")
+      .then((r) => r.json())
+      .then((d) => { if (d.analyses) setHistory(d.analyses) })
+      .catch(() => {})
+  }, [])
 
   const handleProcess = async () => {
     if (!inputText.trim()) return
     setIsProcessing(true)
     setVideos([])
     setVideoError("")
+    setMaterials(null)
     try {
       const res = await fetch("/api/lesson-ai", {
         method: "POST",
@@ -53,6 +71,11 @@ export default function LessonAIPage() {
         return
       }
       setMaterials(data)
+      // Refresh history
+      fetch("/api/lesson-ai")
+        .then((r) => r.json())
+        .then((d) => { if (d.analyses) setHistory(d.analyses) })
+        .catch(() => {})
     } catch (err) {
       console.error(err)
     } finally {
@@ -75,22 +98,25 @@ export default function LessonAIPage() {
     }
   }
 
-  const handleLoadVideos = async (mat?: StudyMaterials | null) => {
-    const source = mat ?? materials
-    if (!source?.topics?.length) return
+  const loadFromHistory = (item: HistoryItem) => {
+    setMaterials(item.result)
+    setInputText(item.inputText)
+    setVideos([])
+    setVideoError("")
+    setShowHistory(false)
+  }
+
+  const handleLoadVideos = async () => {
+    if (!materials?.topics?.length) return
     setLoadingVideos(true)
     setVideoError("")
     setVideos([])
     try {
-      // Use only first topic, keep it short for better results
-      const query = source.topics[0].split(" ").slice(0, 5).join(" ")
+      const query = materials.topics[0].split(" ").slice(0, 5).join(" ")
       const res = await fetch(`/api/youtube?q=${encodeURIComponent(query)}`)
       const data = await res.json()
-      if (data.error) {
-        setVideoError(data.error)
-      } else if (data.videos) {
-        setVideos(data.videos)
-      }
+      if (data.error) setVideoError(data.error)
+      else if (data.videos) setVideos(data.videos)
     } catch {
       setVideoError("Failed to load videos")
     } finally {
@@ -115,7 +141,42 @@ export default function LessonAIPage() {
             <p className="text-sm text-muted-foreground">Upload or paste your lesson content and get instant study materials</p>
           </div>
           <Badge className="ml-auto">Pro Feature</Badge>
+          <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => setShowHistory(!showHistory)}>
+            <History className="h-4 w-4" />
+            History {history.length > 0 && <Badge variant="secondary" className="ml-1 text-xs">{history.length}</Badge>}
+          </Button>
         </div>
+
+        {/* History Panel */}
+        {showHistory && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" />Past Analyses</CardTitle>
+              <CardDescription>Click to reload a previous result</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {history.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No history yet.</p>
+              ) : (
+                history.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => loadFromHistory(item)}
+                    className="w-full flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors text-left"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{item.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(item.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Input */}
         <Card>
@@ -260,7 +321,7 @@ export default function LessonAIPage() {
                   ) : videoError ? (
                     <div className="text-center py-8">
                       <p className="text-sm text-destructive mb-3">{videoError}</p>
-                      <Button variant="outline" size="sm" onClick={() => handleLoadVideos()}>Retry</Button>
+                      <Button variant="outline" size="sm" onClick={handleLoadVideos}>Retry</Button>
                     </div>
                   ) : videos.length > 0 ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -273,12 +334,7 @@ export default function LessonAIPage() {
                           className="group rounded-lg border overflow-hidden hover:border-primary transition-colors"
                         >
                           <div className="relative aspect-video bg-muted">
-                            <Image
-                              src={video.thumbnail}
-                              alt={video.title}
-                              fill
-                              className="object-cover"
-                            />
+                            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Youtube className="h-8 w-8 text-white" />
                             </div>
@@ -294,8 +350,8 @@ export default function LessonAIPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   )}
                 </CardContent>

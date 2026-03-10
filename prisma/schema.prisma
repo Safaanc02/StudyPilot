@@ -16,11 +16,12 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  assignments  Assignment[]
-  exams        Exam[]
-  notes        Note[]
-  flashcards   Flashcard[]
-  applications InternshipApplication[]
+  assignments     Assignment[]
+  exams           Exam[]
+  notes           Note[]
+  flashcards      Flashcard[]
+  applications    InternshipApplication[]
+  lessonAnalyses  LessonAnalysis[]
 }
 
 model Assignment {
@@ -65,6 +66,16 @@ model Flashcard {
   back      String
   subject   String?
   createdAt DateTime @default(now())
+}
+
+model LessonAnalysis {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  inputText   String
+  result      Json
+  createdAt   DateTime @default(now())
 }
 
 model InternshipApplication {

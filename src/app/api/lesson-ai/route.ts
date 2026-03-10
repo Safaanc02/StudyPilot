@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+import { auth } from "@clerk/nextjs/server"
+import { prisma } from "@/lib/prisma"
 
 const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId: clerkId } = await auth()
     const { text } = await req.json()
 
     if (!text || text.trim().length < 50) {
@@ -65,9 +68,53 @@ ${text}`,
     }
 
     const materials = JSON.parse(jsonMatch[0])
+
+    // Save to DB if user is authenticated
+    if (clerkId) {
+      const user = await prisma.user.findUnique({ where: { clerkId } })
+      if (user) {
+        const title = materials.topics?.[0]?.split(" ").slice(0, 6).join(" ") || text.slice(0, 60)
+        await prisma.lessonAnalysis.create({
+          data: {
+            userId: user.id,
+            title,
+            inputText: text.slice(0, 500),
+            result: materials,
+          },
+        })
+      }
+    }
+
     return NextResponse.json(materials)
   } catch (error) {
     console.error("Lesson AI error:", error)
     return NextResponse.json({ error: "Failed to process lesson" }, { status: 500 })
+  }
+}
+
+export async function GET() {
+  try {
+    const { userId: clerkId } = await auth()
+    if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const user = await prisma.user.findUnique({ where: { clerkId } })
+    if (!user) return NextResponse.json({ analyses: [] })
+
+    const analyses = await prisma.lessonAnalysis.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        inputText: true,
+        result: true,
+        createdAt: true,
+      },
+    })
+
+    return NextResponse.json({ analyses })
+  } catch (error) {
+    console.error("History error:", error)
+    return NextResponse.json({ error: "Failed to fetch history" }, { status: 500 })
   }
 }
