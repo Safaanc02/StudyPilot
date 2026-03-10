@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Merge, Scissors, Minimize2, BookCopy, Upload, Loader2, Download, X, CheckCircle2 } from "lucide-react"
+import { FileText, Merge, Scissors, Minimize2, BookCopy, Upload, Loader2, Download, X, CheckCircle2, FolderArchive } from "lucide-react"
 
 const tools = [
   {
@@ -22,7 +22,7 @@ const tools = [
     id: "split",
     icon: Scissors,
     title: "Split PDF",
-    description: "Extract a range of pages from a PDF",
+    description: "Split into multiple PDFs by page ranges",
     endpoint: "/api/pdf/split",
     multiple: false,
     color: "bg-purple-500/10 text-purple-600 border-purple-200",
@@ -50,10 +50,17 @@ const tools = [
   },
 ]
 
+const MAX_TOTAL_SIZE = 4 * 1024 * 1024 // 4MB Vercel serverless limit
+
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`
+}
+
+// Detect if split input has multiple segments (e.g. "1-3 | 4-7 | 8-10")
+function isMultiSplit(input: string) {
+  return input.includes("|")
 }
 
 export default function PDFToolsPage() {
@@ -68,20 +75,35 @@ export default function PDFToolsPage() {
 
   const handleProcess = async () => {
     if (!tool || files.length === 0) return
+
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0)
+    if (totalSize > MAX_TOTAL_SIZE) {
+      setError(`Total file size (${formatSize(totalSize)}) exceeds the 4 MB limit. Please use smaller files.`)
+      return
+    }
+
     setIsProcessing(true)
     setError("")
     setResult(null)
     try {
       const formData = new FormData()
       files.forEach(f => formData.append("files", f))
-      if ((activeTool === "split" || activeTool === "extract") && pageRange) {
-        formData.append("pages", pageRange)
+
+      if (activeTool === "split" || activeTool === "extract") {
+        if (pageRange) formData.append("pages", pageRange)
+        if (activeTool === "split") formData.append("mode", "split")
       }
+
       const res = await fetch(tool.endpoint, { method: "POST", body: formData })
       if (res.ok) {
         const blob = await res.blob()
         const url = URL.createObjectURL(blob)
-        const name = activeTool === "merge" ? "merged.pdf" : activeTool === "compress" ? "compressed.pdf" : "output.pdf"
+        let name: string
+        if (activeTool === "merge") name = "merged.pdf"
+        else if (activeTool === "compress") name = "compressed.pdf"
+        else if (activeTool === "split" && isMultiSplit(pageRange)) {
+          name = `${files[0]?.name.replace(/\.pdf$/i, "") ?? "document"}_split.zip`
+        } else name = "output.pdf"
         setResult({ url, name })
       } else {
         const data = await res.json()
@@ -106,6 +128,8 @@ export default function PDFToolsPage() {
     setError("")
     setPageRange("")
   }
+
+  const isSplitMulti = activeTool === "split" && isMultiSplit(pageRange)
 
   return (
     <div>
@@ -180,6 +204,16 @@ export default function PDFToolsPage() {
               {/* File list */}
               {files.length > 0 && (
                 <div className="space-y-2">
+                  {files.length > 1 && (() => {
+                    const total = files.reduce((s, f) => s + f.size, 0)
+                    const over = total > MAX_TOTAL_SIZE
+                    return (
+                      <div className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium ${over ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-muted/50 text-muted-foreground"}`}>
+                        <span>{files.length} files</span>
+                        <span>{formatSize(total)} / 4 MB {over ? "— too large" : ""}</span>
+                      </div>
+                    )
+                  })()}
                   {files.map((f, i) => (
                     <div key={i} className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
                       <div className="h-8 w-8 rounded-md bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
@@ -200,14 +234,32 @@ export default function PDFToolsPage() {
               {/* Page range for split/extract */}
               {(activeTool === "split" || activeTool === "extract") && files.length > 0 && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Page range (optional)</label>
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {activeTool === "split" ? "Split ranges" : "Page range"}{" "}
+                    <span className="text-muted-foreground/60">(optional)</span>
+                  </label>
                   <Input
-                    placeholder="e.g. 1-3, 5, 7-10"
+                    placeholder={activeTool === "split" ? "e.g. 1-3 | 4-7 | 8-10" : "e.g. 1-3, 5, 7-10"}
                     value={pageRange}
                     onChange={e => setPageRange(e.target.value)}
-                    className="text-sm"
+                    className="text-sm font-mono"
                   />
-                  <p className="text-xs text-muted-foreground">Leave empty to extract all pages</p>
+                  {activeTool === "split" ? (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Separate ranges with <code className="bg-muted px-1 rounded">|</code> to get multiple PDFs in a ZIP.
+                        Leave empty to duplicate the whole PDF.
+                      </p>
+                      {isSplitMulti && (
+                        <div className="flex items-center gap-1.5 text-xs text-purple-600 font-medium">
+                          <FolderArchive className="h-3.5 w-3.5" />
+                          Will generate {pageRange.split("|").filter(s => s.trim()).length} PDFs → downloaded as ZIP
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Leave empty to extract all pages</p>
+                  )}
                 </div>
               )}
 
@@ -245,6 +297,8 @@ export default function PDFToolsPage() {
                 >
                   {isProcessing ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</>
+                  ) : isSplitMulti ? (
+                    <><FolderArchive className="mr-2 h-4 w-4" />Split &amp; Download ZIP</>
                   ) : (
                     <><tool.icon className="mr-2 h-4 w-4" />{tool.title}</>
                   )}
