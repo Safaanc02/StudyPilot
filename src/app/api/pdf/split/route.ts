@@ -49,9 +49,9 @@ export async function POST(req: NextRequest) {
         zip.file(`part_${idx + 1}.pdf`, pdfBytes)
       }
 
-      const zipBytes = await zip.generateAsync({ type: "nodebuffer" })
+      const zipBuffer = await zip.generateAsync({ type: "arraybuffer" })
       const baseName = file.name.replace(/\.pdf$/i, "")
-      return new NextResponse(zipBytes, {
+      return new NextResponse(zipBuffer, {
         headers: {
           "Content-Type": "application/zip",
           "Content-Disposition": `attachment; filename="${baseName}_split.zip"`,
