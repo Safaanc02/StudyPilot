@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import {
   Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers,
-  Loader2, Youtube, ExternalLink, History, X, Clock, ChevronRight
+  Loader2, Youtube, ExternalLink, Library, X, Clock, BookMarked, Sparkles
 } from "lucide-react"
 
 interface StudyMaterials {
@@ -141,58 +141,88 @@ export default function LessonAIPage() {
     <div className="relative">
       <Header title="AI Lesson Tool" />
 
-      {/* History Drawer Overlay */}
+      {/* My Library Drawer */}
       {showHistory && (
         <div className="fixed inset-0 z-50 flex">
-          <div className="flex-1 bg-black/40" onClick={() => setShowHistory(false)} />
-          <div className="w-80 bg-background border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b">
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4 text-primary" />
-                <span className="font-semibold text-sm">History</span>
-                {history.length > 0 && (
-                  <span className="bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">{history.length}</span>
-                )}
+          <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setShowHistory(false)} />
+          <div className="w-96 bg-background border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+
+            {/* Header */}
+            <div className="px-5 pt-5 pb-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Library className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-sm">My Library</h2>
+                    <p className="text-xs text-muted-foreground">{history.length} saved {history.length === 1 ? "lesson" : "lessons"}</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowHistory(false)} className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
               </div>
-              <button onClick={() => setShowHistory(false)} className="rounded-md p-1 hover:bg-accent transition-colors">
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
             </div>
 
-            {/* Drawer content */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                  <History className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                  <p className="text-sm font-medium text-muted-foreground">No analyses yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Your saved lessons will appear here</p>
+                <div className="flex flex-col items-center justify-center h-full text-center py-20 gap-3">
+                  <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center">
+                    <BookMarked className="h-7 w-7 text-muted-foreground/40" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground">Library is empty</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">Analyses you generate will be saved here</p>
+                  </div>
                 </div>
               ) : (
-                history.map((item, index) => (
-                  <button
-                    key={item.id}
-                    onClick={() => loadFromHistory(item)}
-                    className="w-full text-left rounded-xl border bg-card hover:bg-accent hover:border-primary/30 transition-all p-3.5 group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-primary/60">#{history.length - index}</span>
-                          <p className="text-sm font-medium truncate leading-tight">{item.title}</p>
+                history.map((item, index) => {
+                  const result = item.result as StudyMaterials
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => loadFromHistory(item)}
+                      className="w-full text-left rounded-xl border bg-card hover:border-primary/40 hover:shadow-sm transition-all p-4 group relative overflow-hidden"
+                    >
+                      {/* Accent bar */}
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/0 group-hover:bg-primary/60 transition-all rounded-l-xl" />
+
+                      <div className="flex items-start gap-3">
+                        {/* Icon */}
+                        <div className="h-9 w-9 rounded-lg bg-primary/8 border border-primary/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
+                          <Sparkles className="h-4 w-4 text-primary/70" />
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.inputText}</p>
-                        <div className="flex items-center gap-1 mt-2">
-                          <Clock className="h-3 w-3 text-muted-foreground/50" />
-                          <span className="text-xs text-muted-foreground/70">{timeAgo(item.createdAt)}</span>
-                          <span className="mx-1 text-muted-foreground/30">·</span>
-                          <span className="text-xs text-muted-foreground/70">{(item.result as StudyMaterials).flashcards?.length ?? 0} flashcards</span>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-1 mb-1">
+                            <p className="text-sm font-semibold leading-tight line-clamp-1 group-hover:text-primary transition-colors">{item.title}</p>
+                            <span className="text-xs text-muted-foreground/50 shrink-0 mt-0.5">#{history.length - index}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">{item.inputText}</p>
+
+                          {/* Meta pills */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
+                              <Clock className="h-2.5 w-2.5" />
+                              {timeAgo(item.createdAt)}
+                            </span>
+                            <span className="text-muted-foreground/30 text-xs">·</span>
+                            <span className="inline-flex items-center gap-1 bg-primary/6 text-primary/70 text-xs px-1.5 py-0.5 rounded-full font-medium">
+                              <Layers className="h-2.5 w-2.5" />
+                              {result.flashcards?.length ?? 0} cards
+                            </span>
+                            <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full">
+                              <Brain className="h-2.5 w-2.5" />
+                              {result.keyConcepts?.length ?? 0} concepts
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary shrink-0 mt-0.5 transition-colors" />
-                    </div>
-                  </button>
-                ))
+                    </button>
+                  )
+                })
               )}
             </div>
           </div>
@@ -210,13 +240,13 @@ export default function LessonAIPage() {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-1.5 shrink-0"
+            className="flex items-center gap-1.5 shrink-0 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
             onClick={() => setShowHistory(true)}
           >
-            <History className="h-4 w-4" />
-            History
+            <Library className="h-4 w-4 text-primary" />
+            <span className="font-medium">My Library</span>
             {history.length > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">
+              <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center">
                 {history.length}
               </span>
             )}
