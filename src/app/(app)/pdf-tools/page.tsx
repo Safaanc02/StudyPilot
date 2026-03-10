@@ -13,6 +13,7 @@ const tools = [
     icon: Merge,
     title: "Merge PDFs",
     description: "Combine multiple PDFs into one file",
+    hint: "Upload 2 or more PDF files. They will be merged in the order you select them.",
     endpoint: "/api/pdf/merge",
     multiple: true,
     color: "bg-blue-500/10 text-blue-600 border-blue-200",
@@ -23,6 +24,7 @@ const tools = [
     icon: Scissors,
     title: "Split PDF",
     description: "Split into multiple PDFs by page ranges",
+    hint: "Define ranges separated by commas — each range becomes a separate PDF file, all bundled in a ZIP.",
     endpoint: "/api/pdf/split",
     multiple: false,
     color: "bg-purple-500/10 text-purple-600 border-purple-200",
@@ -32,7 +34,8 @@ const tools = [
     id: "compress",
     icon: Minimize2,
     title: "Compress PDF",
-    description: "Reduce PDF file size for submissions",
+    description: "Reduce PDF file size for email or upload limits",
+    hint: "Optimizes images and structure to reduce file size. Works best on PDFs with photos or scanned pages.",
     endpoint: "/api/pdf/compress",
     multiple: false,
     color: "bg-green-500/10 text-green-600 border-green-200",
@@ -42,7 +45,8 @@ const tools = [
     id: "extract",
     icon: BookCopy,
     title: "Extract Pages",
-    description: "Pick specific pages and save as new PDF",
+    description: "Save specific pages as a new PDF",
+    hint: "Enter individual pages or ranges (e.g. 1-3, 5, 7-10). All selected pages are saved into a single PDF.",
     endpoint: "/api/pdf/split",
     multiple: false,
     color: "bg-orange-500/10 text-orange-600 border-orange-200",
@@ -192,6 +196,11 @@ export default function PDFToolsPage() {
                   <p className="text-xs text-muted-foreground">{tool.description}</p>
                 </div>
               </div>
+
+              {/* Tool hint */}
+              <p className="text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2 border border-border/50">
+                {tool.hint}
+              </p>
 
               {/* Drop zone */}
               <label className={`flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed p-8 transition-colors
