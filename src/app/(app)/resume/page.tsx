@@ -1,67 +1,59 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Download, UserCircle, Palette } from "lucide-react"
+import { Plus, Trash2, Download, UserCircle, Palette, Camera, Loader2 } from "lucide-react"
 
 interface Education { id: string; school: string; degree: string; field: string; startYear: string; endYear: string; gpa: string }
 interface Experience { id: string; company: string; role: string; startDate: string; endDate: string; description: string }
 interface Project { id: string; name: string; description: string; tech: string; link: string }
 
 const THEMES = [
-  {
-    id: "classic",
-    name: "Classic",
-    accent: "#1a1a1a",
-    preview: "bg-gray-900",
-    description: "Clean & traditional",
-  },
-  {
-    id: "modern",
-    name: "Modern",
-    accent: "#6366f1",
-    preview: "bg-indigo-500",
-    description: "Bold & colorful",
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    accent: "#0f172a",
-    preview: "bg-slate-900",
-    description: "Ultra clean",
-  },
-  {
-    id: "forest",
-    name: "Forest",
-    accent: "#166534",
-    preview: "bg-green-700",
-    description: "Professional green",
-  },
+  { id: "classic", name: "Classic", accent: "#1a1a1a", preview: "bg-gray-900", description: "Clean & traditional" },
+  { id: "modern", name: "Modern", accent: "#6366f1", preview: "bg-indigo-500", description: "Bold & colorful" },
+  { id: "minimal", name: "Minimal", accent: "#0f172a", preview: "bg-slate-900", description: "Ultra clean" },
+  { id: "forest", name: "Forest", accent: "#166534", preview: "bg-green-700", description: "Professional green" },
 ]
 
 type ThemeId = "classic" | "modern" | "minimal" | "forest"
 
 interface ResumeData {
-  personal: { name: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string }
+  personal: { name: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string; photo: string }
   education: Education[]
   experience: Experience[]
   projects: Project[]
   skills: string
 }
 
+function Photo({ src, size = 56 }: { src: string; size?: number }) {
+  if (!src) return null
+  return (
+    <img
+      src={src}
+      alt="profile"
+      width={size}
+      height={size}
+      style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+    />
+  )
+}
+
 function ResumePreviewClassic({ data }: { data: ResumeData }) {
   const { personal, education, experience, projects, skills } = data
   return (
     <div className="text-sm space-y-4 font-serif">
-      <div className="text-center border-b-2 border-black pb-3">
-        <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}</h2>
-        <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-        <p className="text-xs text-gray-600">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-        {personal.summary && <p className="text-xs mt-2 italic text-gray-700">{personal.summary}</p>}
+      <div className="text-center border-b-2 border-black pb-3 flex flex-col items-center gap-2">
+        {personal.photo && <Photo src={personal.photo} size={60} />}
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}</h2>
+          <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+          <p className="text-xs text-gray-600">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+          {personal.summary && <p className="text-xs mt-2 italic text-gray-700">{personal.summary}</p>}
+        </div>
       </div>
       {education.some(e => e.school) && (
         <div>
@@ -112,18 +104,20 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
   const accent = "#6366f1"
   return (
     <div className="text-sm space-y-0">
-      <div className="rounded-t-md px-6 py-4 mb-4" style={{ backgroundColor: accent }}>
-        <h2 className="text-xl font-bold text-white">{personal.name || "Your Name"}</h2>
-        <p className="text-xs text-indigo-200 mt-0.5">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-        <p className="text-xs text-indigo-200">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-        {personal.summary && <p className="text-xs text-indigo-100 mt-2">{personal.summary}</p>}
+      <div className="rounded-t-md px-6 py-4 mb-4 flex items-center gap-4" style={{ backgroundColor: accent }}>
+        {personal.photo && <Photo src={personal.photo} size={56} />}
+        <div>
+          <h2 className="text-xl font-bold text-white">{personal.name || "Your Name"}</h2>
+          <p className="text-xs text-indigo-200 mt-0.5">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+          <p className="text-xs text-indigo-200">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+          {personal.summary && <p className="text-xs text-indigo-100 mt-2">{personal.summary}</p>}
+        </div>
       </div>
       <div className="space-y-3 px-1">
         {education.some(e => e.school) && (
           <div>
             <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
-              Education
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Education
             </h3>
             {education.filter(e => e.school).map(edu => (
               <div key={edu.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
@@ -136,8 +130,7 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
         {experience.some(e => e.company) && (
           <div>
             <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
-              Experience
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Experience
             </h3>
             {experience.filter(e => e.company).map(exp => (
               <div key={exp.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
@@ -151,8 +144,7 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
         {projects.some(p => p.name) && (
           <div>
             <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
-              Projects
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Projects
             </h3>
             {projects.filter(p => p.name).map(proj => (
               <div key={proj.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
@@ -165,8 +157,7 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
         {skills && (
           <div>
             <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
-              Skills
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Skills
             </h3>
             <div className="flex flex-wrap gap-1 pl-4">
               {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
@@ -184,11 +175,14 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
   const { personal, education, experience, projects, skills } = data
   return (
     <div className="text-sm space-y-5">
-      <div>
-        <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}</h2>
-        <p className="text-xs mt-1 text-gray-400">{[personal.email, personal.phone, personal.location].filter(Boolean).join("  ·  ")}</p>
-        {(personal.linkedin || personal.github) && <p className="text-xs text-gray-400">{[personal.linkedin, personal.github].filter(Boolean).join("  ·  ")}</p>}
-        {personal.summary && <p className="text-xs mt-2 text-gray-600 leading-relaxed">{personal.summary}</p>}
+      <div className="flex items-start gap-4">
+        {personal.photo && <Photo src={personal.photo} size={52} />}
+        <div>
+          <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}</h2>
+          <p className="text-xs mt-1 text-gray-400">{[personal.email, personal.phone, personal.location].filter(Boolean).join("  ·  ")}</p>
+          {(personal.linkedin || personal.github) && <p className="text-xs text-gray-400">{[personal.linkedin, personal.github].filter(Boolean).join("  ·  ")}</p>}
+          {personal.summary && <p className="text-xs mt-2 text-gray-600 leading-relaxed">{personal.summary}</p>}
+        </div>
       </div>
       {education.some(e => e.school) && (
         <div>
@@ -239,14 +233,16 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
   return (
     <div className="text-sm">
       <div className="flex gap-0">
-        {/* Left sidebar */}
         <div className="w-2 rounded-l-sm shrink-0" style={{ backgroundColor: accent }} />
         <div className="flex-1 space-y-4 pl-4">
-          <div className="pb-3 border-b" style={{ borderColor: `${accent}30` }}>
-            <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
-            <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-            <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-            {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
+          <div className="pb-3 border-b flex items-start gap-3" style={{ borderColor: `${accent}30` }}>
+            {personal.photo && <Photo src={personal.photo} size={52} />}
+            <div>
+              <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
+              <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+              <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+              {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
+            </div>
           </div>
           {education.some(e => e.school) && (
             <div>
@@ -299,16 +295,60 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
 }
 
 export default function ResumePage() {
-  const [personal, setPersonal] = useState({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "" })
+  const [personal, setPersonal] = useState({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
   const [education, setEducation] = useState<Education[]>([{ id: "1", school: "", degree: "", field: "", startYear: "", endYear: "", gpa: "" }])
   const [experience, setExperience] = useState<Experience[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [skills, setSkills] = useState("")
   const [activeSection, setActiveSection] = useState("personal")
   const [theme, setTheme] = useState<ThemeId>("classic")
+  const [exporting, setExporting] = useState(false)
+  const previewRef = useRef<HTMLDivElement>(null)
 
   const sections = ["personal", "education", "experience", "projects", "skills"]
   const data: ResumeData = { personal, education, experience, projects, skills }
+
+  const handleExport = async () => {
+    if (!previewRef.current) return
+    setExporting(true)
+    try {
+      const html2canvas = (await import("html2canvas")).default
+      const { jsPDF } = await import("jspdf")
+      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" })
+      const imgData = canvas.toDataURL("image/png")
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth
+      const imgHeight = (canvas.height * pageWidth) / canvas.width
+      let y = 0
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
+      } else {
+        // Multi-page support
+        let remaining = imgHeight
+        while (remaining > 0) {
+          pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight)
+          remaining -= pageHeight
+          y -= pageHeight
+          if (remaining > 0) pdf.addPage()
+        }
+      }
+      pdf.save(`${personal.name || "resume"}_${theme}.pdf`)
+    } catch (e) {
+      console.error("Export failed:", e)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => setPersonal(p => ({ ...p, photo: ev.target?.result as string }))
+    reader.readAsDataURL(file)
+  }
 
   return (
     <div>
@@ -319,7 +359,9 @@ export default function ResumePage() {
             <p className="text-sm text-muted-foreground">Build a professional resume with modern templates</p>
             <Badge className="ml-2">Pro Feature</Badge>
           </div>
-          <Button className="gap-2"><Download className="h-4 w-4" />Export PDF</Button>
+          <Button className="gap-2" onClick={handleExport} disabled={exporting}>
+            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" />Exporting...</> : <><Download className="h-4 w-4" />Export PDF</>}
+          </Button>
         </div>
 
         {/* Theme picker */}
@@ -353,6 +395,30 @@ export default function ResumePage() {
               <Card>
                 <CardHeader><CardTitle className="text-base flex items-center gap-2"><UserCircle className="h-4 w-4" />Personal Information</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Photo upload */}
+                  <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
+                    {personal.photo ? (
+                      <img src={personal.photo} alt="profile" className="h-14 w-14 rounded-full object-cover border-2 border-border shrink-0" />
+                    ) : (
+                      <div className="h-14 w-14 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center shrink-0">
+                        <Camera className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">Profile Photo</p>
+                      <p className="text-xs text-muted-foreground mb-2">Optional — JPG or PNG</p>
+                      <label className="cursor-pointer">
+                        <span className="text-xs px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted transition-colors">
+                          {personal.photo ? "Change photo" : "Upload photo"}
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+                      </label>
+                      {personal.photo && (
+                        <button onClick={() => setPersonal(p => ({ ...p, photo: "" }))} className="ml-2 text-xs text-destructive hover:underline">Remove</button>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <Input placeholder="Full Name" value={personal.name} onChange={e => setPersonal({ ...personal, name: e.target.value })} />
                     <Input placeholder="Email" type="email" value={personal.email} onChange={e => setPersonal({ ...personal, email: e.target.value })} />
@@ -463,7 +529,7 @@ export default function ResumePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border p-6 min-h-[500px] bg-white">
+              <div ref={previewRef} className="rounded-md border p-6 min-h-[500px] bg-white">
                 {personal.name ? (
                   <>
                     {theme === "classic" && <ResumePreviewClassic data={data} />}
