@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 
 const client = new Anthropic()
@@ -69,20 +69,27 @@ ${text}`,
 
     const materials = JSON.parse(jsonMatch[0])
 
-    // Save to DB if user is authenticated
+    // Save to DB if user is authenticated (upsert user in case they don't exist yet)
     if (clerkId) {
-      const user = await prisma.user.findUnique({ where: { clerkId } })
-      if (user) {
-        const title = materials.topics?.[0]?.split(" ").slice(0, 6).join(" ") || text.slice(0, 60)
-        await prisma.lessonAnalysis.create({
-          data: {
-            userId: user.id,
-            title,
-            inputText: text.slice(0, 500),
-            result: materials,
-          },
-        })
-      }
+      const clerkUserData = await currentUser()
+      const email = clerkUserData?.emailAddresses?.[0]?.emailAddress ?? `${clerkId}@unknown.com`
+      const name = clerkUserData?.fullName ?? clerkUserData?.firstName ?? null
+
+      const user = await prisma.user.upsert({
+        where: { clerkId },
+        update: {},
+        create: { clerkId, email, name },
+      })
+
+      const title = materials.topics?.[0]?.split(" ").slice(0, 6).join(" ") || text.slice(0, 60)
+      await prisma.lessonAnalysis.create({
+        data: {
+          userId: user.id,
+          title,
+          inputText: text.slice(0, 500),
+          result: materials,
+        },
+      })
     }
 
     return NextResponse.json(materials)
