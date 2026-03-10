@@ -71,7 +71,7 @@ export default function PDFToolsPage() {
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [files, setFiles] = useState<File[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
-  const [result, setResult] = useState<{ url: string; name: string } | null>(null)
+  const [result, setResult] = useState<{ url: string; name: string; originalSize?: number; compressedSize?: number } | null>(null)
   const [pageRange, setPageRange] = useState("")
   const [error, setError] = useState("")
 
@@ -108,7 +108,14 @@ export default function PDFToolsPage() {
         else if (activeTool === "split" && isMultiSplit(pageRange)) {
           name = `${files[0]?.name.replace(/\.pdf$/i, "") ?? "document"}_split.zip`
         } else name = "output.pdf"
-        setResult({ url, name })
+
+        let originalSize: number | undefined
+        let compressedSize: number | undefined
+        if (activeTool === "compress") {
+          originalSize = parseInt(res.headers.get("X-Original-Size") ?? "0") || files[0]?.size
+          compressedSize = parseInt(res.headers.get("X-Compressed-Size") ?? "0") || blob.size
+        }
+        setResult({ url, name, originalSize, compressedSize })
       } else {
         const data = await res.json()
         setError(data.error ?? "Processing failed")
@@ -279,7 +286,16 @@ export default function PDFToolsPage() {
                   <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-green-800">Done! Your file is ready.</p>
-                    <p className="text-xs text-green-600">{result.name}</p>
+                    {result.originalSize && result.compressedSize ? (
+                      <p className="text-xs text-green-600">
+                        {formatSize(result.originalSize)} → {formatSize(result.compressedSize)}{" "}
+                        <span className="font-semibold">
+                          ({Math.round((1 - result.compressedSize / result.originalSize) * 100)}% smaller)
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-green-600">{result.name}</p>
+                    )}
                   </div>
                   <a href={result.url} download={result.name}>
                     <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700 text-white">
