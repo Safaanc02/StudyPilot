@@ -6,11 +6,297 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Download, UserCircle } from "lucide-react"
+import { Plus, Trash2, Download, UserCircle, Palette } from "lucide-react"
 
 interface Education { id: string; school: string; degree: string; field: string; startYear: string; endYear: string; gpa: string }
 interface Experience { id: string; company: string; role: string; startDate: string; endDate: string; description: string }
 interface Project { id: string; name: string; description: string; tech: string; link: string }
+
+const THEMES = [
+  {
+    id: "classic",
+    name: "Classic",
+    accent: "#1a1a1a",
+    preview: "bg-gray-900",
+    description: "Clean & traditional",
+  },
+  {
+    id: "modern",
+    name: "Modern",
+    accent: "#6366f1",
+    preview: "bg-indigo-500",
+    description: "Bold & colorful",
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    accent: "#0f172a",
+    preview: "bg-slate-900",
+    description: "Ultra clean",
+  },
+  {
+    id: "forest",
+    name: "Forest",
+    accent: "#166534",
+    preview: "bg-green-700",
+    description: "Professional green",
+  },
+]
+
+type ThemeId = "classic" | "modern" | "minimal" | "forest"
+
+interface ResumeData {
+  personal: { name: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string }
+  education: Education[]
+  experience: Experience[]
+  projects: Project[]
+  skills: string
+}
+
+function ResumePreviewClassic({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  return (
+    <div className="text-sm space-y-4 font-serif">
+      <div className="text-center border-b-2 border-black pb-3">
+        <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}</h2>
+        <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+        <p className="text-xs text-gray-600">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+        {personal.summary && <p className="text-xs mt-2 italic text-gray-700">{personal.summary}</p>}
+      </div>
+      {education.some(e => e.school) && (
+        <div>
+          <h3 className="font-bold text-xs uppercase tracking-widest border-b border-gray-300 pb-1 mb-2">Education</h3>
+          {education.filter(e => e.school).map(edu => (
+            <div key={edu.id} className="mb-2">
+              <div className="flex justify-between"><p className="font-bold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+              <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {experience.some(e => e.company) && (
+        <div>
+          <h3 className="font-bold text-xs uppercase tracking-widest border-b border-gray-300 pb-1 mb-2">Experience</h3>
+          {experience.filter(e => e.company).map(exp => (
+            <div key={exp.id} className="mb-2">
+              <div className="flex justify-between"><p className="font-bold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+              <p className="text-xs text-gray-600 italic">{exp.company}</p>
+              {exp.description && <p className="text-xs mt-1">{exp.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {projects.some(p => p.name) && (
+        <div>
+          <h3 className="font-bold text-xs uppercase tracking-widest border-b border-gray-300 pb-1 mb-2">Projects</h3>
+          {projects.filter(p => p.name).map(proj => (
+            <div key={proj.id} className="mb-2">
+              <p className="font-bold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+              {proj.description && <p className="text-xs">{proj.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {skills && (
+        <div>
+          <h3 className="font-bold text-xs uppercase tracking-widest border-b border-gray-300 pb-1 mb-2">Skills</h3>
+          <p className="text-xs text-gray-700">{skills}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ResumePreviewModern({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  const accent = "#6366f1"
+  return (
+    <div className="text-sm space-y-0">
+      <div className="rounded-t-md px-6 py-4 mb-4" style={{ backgroundColor: accent }}>
+        <h2 className="text-xl font-bold text-white">{personal.name || "Your Name"}</h2>
+        <p className="text-xs text-indigo-200 mt-0.5">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+        <p className="text-xs text-indigo-200">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+        {personal.summary && <p className="text-xs text-indigo-100 mt-2">{personal.summary}</p>}
+      </div>
+      <div className="space-y-3 px-1">
+        {education.some(e => e.school) && (
+          <div>
+            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
+              Education
+            </h3>
+            {education.filter(e => e.school).map(edu => (
+              <div key={edu.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+                <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+                <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {experience.some(e => e.company) && (
+          <div>
+            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
+              Experience
+            </h3>
+            {experience.filter(e => e.company).map(exp => (
+              <div key={exp.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+                <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+                <p className="text-xs" style={{ color: accent }}>{exp.company}</p>
+                {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {projects.some(p => p.name) && (
+          <div>
+            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
+              Projects
+            </h3>
+            {projects.filter(p => p.name).map(proj => (
+              <div key={proj.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+                <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+                {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {skills && (
+          <div>
+            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
+              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />
+              Skills
+            </h3>
+            <div className="flex flex-wrap gap-1 pl-4">
+              {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
+                <span key={skill} className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: accent }}>{skill}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ResumePreviewMinimal({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  return (
+    <div className="text-sm space-y-5">
+      <div>
+        <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}</h2>
+        <p className="text-xs mt-1 text-gray-400">{[personal.email, personal.phone, personal.location].filter(Boolean).join("  ·  ")}</p>
+        {(personal.linkedin || personal.github) && <p className="text-xs text-gray-400">{[personal.linkedin, personal.github].filter(Boolean).join("  ·  ")}</p>}
+        {personal.summary && <p className="text-xs mt-2 text-gray-600 leading-relaxed">{personal.summary}</p>}
+      </div>
+      {education.some(e => e.school) && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">Education</p>
+          {education.filter(e => e.school).map(edu => (
+            <div key={edu.id} className="mb-2">
+              <div className="flex justify-between items-baseline"><p className="text-xs font-medium">{edu.school}</p><p className="text-[10px] text-gray-400">{edu.startYear}{edu.endYear && `–${edu.endYear}`}</p></div>
+              <p className="text-xs text-gray-500">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && `, GPA ${edu.gpa}`}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {experience.some(e => e.company) && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">Experience</p>
+          {experience.filter(e => e.company).map(exp => (
+            <div key={exp.id} className="mb-2">
+              <div className="flex justify-between items-baseline"><p className="text-xs font-medium">{exp.role} <span className="font-light text-gray-500">@ {exp.company}</span></p><p className="text-[10px] text-gray-400">{exp.startDate}{exp.endDate && `–${exp.endDate}`}</p></div>
+              {exp.description && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{exp.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {projects.some(p => p.name) && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">Projects</p>
+          {projects.filter(p => p.name).map(proj => (
+            <div key={proj.id} className="mb-2">
+              <p className="text-xs font-medium">{proj.name}{proj.tech && <span className="font-light text-gray-500"> — {proj.tech}</span>}</p>
+              {proj.description && <p className="text-xs text-gray-600">{proj.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {skills && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">Skills</p>
+          <p className="text-xs text-gray-600 leading-relaxed">{skills}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ResumePreviewForest({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  const accent = "#166534"
+  return (
+    <div className="text-sm">
+      <div className="flex gap-0">
+        {/* Left sidebar */}
+        <div className="w-2 rounded-l-sm shrink-0" style={{ backgroundColor: accent }} />
+        <div className="flex-1 space-y-4 pl-4">
+          <div className="pb-3 border-b" style={{ borderColor: `${accent}30` }}>
+            <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
+            <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
+          </div>
+          {education.some(e => e.school) && (
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Education</h3>
+              {education.filter(e => e.school).map(edu => (
+                <div key={edu.id} className="mb-2">
+                  <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+                  <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {experience.some(e => e.company) && (
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Experience</h3>
+              {experience.filter(e => e.company).map(exp => (
+                <div key={exp.id} className="mb-2">
+                  <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+                  <p className="text-xs font-medium" style={{ color: accent }}>{exp.company}</p>
+                  {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+          {projects.some(p => p.name) && (
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Projects</h3>
+              {projects.filter(p => p.name).map(proj => (
+                <div key={proj.id} className="mb-2">
+                  <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+                  {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+          {skills && (
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Skills</h3>
+              <div className="flex flex-wrap gap-1">
+                {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
+                  <span key={skill} className="text-xs border rounded px-1.5 py-0.5" style={{ borderColor: `${accent}50`, color: accent }}>{skill}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function ResumePage() {
   const [personal, setPersonal] = useState({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "" })
@@ -19,8 +305,10 @@ export default function ResumePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [skills, setSkills] = useState("")
   const [activeSection, setActiveSection] = useState("personal")
+  const [theme, setTheme] = useState<ThemeId>("classic")
 
   const sections = ["personal", "education", "experience", "projects", "skills"]
+  const data: ResumeData = { personal, education, experience, projects, skills }
 
   return (
     <div>
@@ -32,6 +320,24 @@ export default function ResumePage() {
             <Badge className="ml-2">Pro Feature</Badge>
           </div>
           <Button className="gap-2"><Download className="h-4 w-4" />Export PDF</Button>
+        </div>
+
+        {/* Theme picker */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Palette className="h-3.5 w-3.5" />Choose a theme</p>
+          <div className="flex gap-2 flex-wrap">
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTheme(t.id as ThemeId)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 text-sm transition-all ${theme === t.id ? "border-primary shadow-sm bg-primary/5" : "border-border hover:border-muted-foreground/40"}`}
+              >
+                <span className={`h-3.5 w-3.5 rounded-full ${t.preview}`} />
+                <span className="font-medium text-xs">{t.name}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">{t.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-2 flex-wrap">
@@ -150,61 +456,20 @@ export default function ResumePage() {
 
           {/* Preview */}
           <Card className="h-fit">
-            <CardHeader><CardTitle className="text-base">Resume Preview</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center justify-between">
+                Resume Preview
+                <Badge variant="outline" className="text-xs font-normal capitalize">{theme}</Badge>
+              </CardTitle>
+            </CardHeader>
             <CardContent>
-              <div className="rounded-md border p-6 text-sm space-y-4 min-h-[500px]">
+              <div className="rounded-md border p-6 min-h-[500px] bg-white">
                 {personal.name ? (
                   <>
-                    <div className="text-center border-b pb-4">
-                      <h2 className="text-xl font-bold">{personal.name}</h2>
-                      <p className="text-muted-foreground text-xs mt-1">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-                      <p className="text-muted-foreground text-xs">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-                      {personal.summary && <p className="text-xs mt-2">{personal.summary}</p>}
-                    </div>
-                    {education.some(e => e.school) && (
-                      <div>
-                        <h3 className="font-bold text-xs uppercase tracking-wide mb-2">Education</h3>
-                        {education.filter(e => e.school).map(edu => (
-                          <div key={edu.id} className="mb-2">
-                            <p className="font-semibold text-xs">{edu.school}</p>
-                            <p className="text-muted-foreground text-xs">{edu.degree} {edu.field} {edu.startYear && `· ${edu.startYear} – ${edu.endYear}`} {edu.gpa && `· GPA: ${edu.gpa}`}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {experience.some(e => e.company) && (
-                      <div>
-                        <h3 className="font-bold text-xs uppercase tracking-wide mb-2">Experience</h3>
-                        {experience.filter(e => e.company).map(exp => (
-                          <div key={exp.id} className="mb-2">
-                            <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-muted-foreground text-xs">{exp.startDate} – {exp.endDate}</p></div>
-                            <p className="text-muted-foreground text-xs">{exp.company}</p>
-                            {exp.description && <p className="text-xs mt-1">{exp.description}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {projects.some(p => p.name) && (
-                      <div>
-                        <h3 className="font-bold text-xs uppercase tracking-wide mb-2">Projects</h3>
-                        {projects.filter(p => p.name).map(proj => (
-                          <div key={proj.id} className="mb-2">
-                            <p className="font-semibold text-xs">{proj.name} {proj.tech && <span className="font-normal text-muted-foreground">· {proj.tech}</span>}</p>
-                            {proj.description && <p className="text-xs">{proj.description}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {skills && (
-                      <div>
-                        <h3 className="font-bold text-xs uppercase tracking-wide mb-2">Skills</h3>
-                        <div className="flex flex-wrap gap-1">
-                          {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                            <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {theme === "classic" && <ResumePreviewClassic data={data} />}
+                    {theme === "modern" && <ResumePreviewModern data={data} />}
+                    {theme === "minimal" && <ResumePreviewMinimal data={data} />}
+                    {theme === "forest" && <ResumePreviewForest data={data} />}
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-full min-h-[400px] text-muted-foreground">
