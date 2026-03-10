@@ -35,10 +35,8 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 export default function PlannerPage() {
   const today = new Date()
-  const [exams, setExams] = useState<Exam[]>([
-    { id: "1", subject: "Calculus II", date: "2026-03-15", notes: "", color: "bg-blue-500" },
-    { id: "2", subject: "Data Structures", date: "2026-03-22", notes: "", color: "bg-purple-500" },
-  ])
+  const [exams, setExams] = useState<Exam[]>([])
+  const [loadingExams, setLoadingExams] = useState(true)
   const [newExam, setNewExam] = useState({ subject: "", date: "", notes: "" })
   const [pomodoroTime, setPomodoroTime] = useState(25 * 60)
   const [isRunning, setIsRunning] = useState(false)
@@ -50,6 +48,15 @@ export default function PlannerPage() {
   const [calMonth, setCalMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+
+  // Load exams from DB
+  useEffect(() => {
+    fetch("/api/exams")
+      .then(r => r.json())
+      .then(d => { if (d.exams) setExams(d.exams) })
+      .catch(() => {})
+      .finally(() => setLoadingExams(false))
+  }, [])
 
   useEffect(() => {
     if (isRunning) {
@@ -71,12 +78,27 @@ export default function PlannerPage() {
   const getDaysLeft = (date: string) => Math.ceil((new Date(date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const progress = pomodoroMode === "work" ? ((25 * 60 - pomodoroTime) / (25 * 60)) * 100 : ((5 * 60 - pomodoroTime) / (5 * 60)) * 100
 
-  const addExam = () => {
+  const addExam = async () => {
     if (!newExam.subject || !newExam.date) return
     const color = COLORS[exams.length % COLORS.length]
-    setExams([...exams, { ...newExam, id: Date.now().toString(), color }])
+    const res = await fetch("/api/exams", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newExam, color }),
+    })
+    const data = await res.json()
+    if (data.id) setExams(prev => [...prev, data])
     setNewExam({ subject: "", date: "", notes: "" })
     setShowAddModal(false)
+  }
+
+  const deleteExam = async (id: string) => {
+    setExams(prev => prev.filter(e => e.id !== id))
+    await fetch("/api/exams", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    })
   }
 
   const prevMonth = () => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }
@@ -277,7 +299,9 @@ export default function PlannerPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {exams.length === 0 ? (
+              {loadingExams ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Loading...</p>
+              ) : exams.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">No exams added yet. Click on a date to add one.</p>
               ) : (
                 exams.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(exam => {
@@ -292,7 +316,7 @@ export default function PlannerPage() {
                       <Badge variant={days <= 7 ? "destructive" : days <= 14 ? "secondary" : "outline"} className="shrink-0 text-xs">
                         {days > 0 ? `${days}d` : days === 0 ? "Today" : "Past"}
                       </Badge>
-                      <button onClick={() => setExams(exams.filter(e => e.id !== exam.id))} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive">
+                      <button onClick={() => deleteExam(exam.id)} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
