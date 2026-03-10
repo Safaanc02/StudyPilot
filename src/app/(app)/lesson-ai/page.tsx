@@ -34,11 +34,13 @@ export default function LessonAIPage() {
   const [flipped, setFlipped] = useState(false)
   const [videos, setVideos] = useState<YoutubeVideo[]>([])
   const [loadingVideos, setLoadingVideos] = useState(false)
+  const [videoError, setVideoError] = useState("")
 
   const handleProcess = async () => {
     if (!inputText.trim()) return
     setIsProcessing(true)
     setVideos([])
+    setVideoError("")
     try {
       const res = await fetch("/api/lesson-ai", {
         method: "POST",
@@ -73,18 +75,32 @@ export default function LessonAIPage() {
     }
   }
 
-  const handleLoadVideos = async () => {
-    if (!materials?.topics?.length) return
+  const handleLoadVideos = async (mat?: StudyMaterials | null) => {
+    const source = mat ?? materials
+    if (!source?.topics?.length) return
     setLoadingVideos(true)
+    setVideoError("")
+    setVideos([])
     try {
-      const query = materials.topics.slice(0, 3).join(" ")
+      // Use only first topic, keep it short for better results
+      const query = source.topics[0].split(" ").slice(0, 5).join(" ")
       const res = await fetch(`/api/youtube?q=${encodeURIComponent(query)}`)
       const data = await res.json()
-      if (data.videos) setVideos(data.videos)
-    } catch (err) {
-      console.error(err)
+      if (data.error) {
+        setVideoError(data.error)
+      } else if (data.videos) {
+        setVideos(data.videos)
+      }
+    } catch {
+      setVideoError("Failed to load videos")
     } finally {
       setLoadingVideos(false)
+    }
+  }
+
+  const handleTabChange = (value: string) => {
+    if (value === "videos" && videos.length === 0 && !loadingVideos) {
+      handleLoadVideos()
     }
   }
 
@@ -145,13 +161,13 @@ export default function LessonAIPage() {
 
         {/* Results */}
         {materials && (
-          <Tabs defaultValue="summary" className="space-y-4">
+          <Tabs defaultValue="summary" className="space-y-4" onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="summary" className="text-xs"><BookOpen className="h-3 w-3 mr-1" />Summary</TabsTrigger>
               <TabsTrigger value="concepts" className="text-xs"><Brain className="h-3 w-3 mr-1" />Concepts</TabsTrigger>
               <TabsTrigger value="questions" className="text-xs"><HelpCircle className="h-3 w-3 mr-1" />Questions</TabsTrigger>
               <TabsTrigger value="flashcards" className="text-xs"><Layers className="h-3 w-3 mr-1" />Flashcards</TabsTrigger>
-              <TabsTrigger value="videos" className="text-xs" onClick={handleLoadVideos}><Youtube className="h-3 w-3 mr-1" />Videos</TabsTrigger>
+              <TabsTrigger value="videos" className="text-xs"><Youtube className="h-3 w-3 mr-1" />Videos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -233,12 +249,18 @@ export default function LessonAIPage() {
                     <Youtube className="h-4 w-4 text-red-500" />
                     Recommended Learning Videos
                   </CardTitle>
-                  <CardDescription>Topics: {materials.topics.join(", ")}</CardDescription>
+                  <CardDescription>Based on: {materials.topics[0]}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {loadingVideos ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm">Loading videos...</span>
+                    </div>
+                  ) : videoError ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-destructive mb-3">{videoError}</p>
+                      <Button variant="outline" size="sm" onClick={() => handleLoadVideos()}>Retry</Button>
                     </div>
                   ) : videos.length > 0 ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -257,12 +279,15 @@ export default function LessonAIPage() {
                               fill
                               className="object-cover"
                             />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Youtube className="h-8 w-8 text-white" />
+                            </div>
                           </div>
                           <div className="p-3">
                             <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">{video.title}</p>
                             <div className="flex items-center justify-between mt-1">
-                              <p className="text-xs text-muted-foreground">{video.channel}</p>
-                              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                              <p className="text-xs text-muted-foreground truncate">{video.channel}</p>
+                              <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0 ml-1" />
                             </div>
                           </div>
                         </a>
@@ -270,11 +295,7 @@ export default function LessonAIPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Youtube className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">Click the Videos tab to load recommendations</p>
-                      <Button variant="outline" size="sm" className="mt-3" onClick={handleLoadVideos}>
-                        Load Videos
-                      </Button>
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
                     </div>
                   )}
                 </CardContent>
