@@ -314,26 +314,54 @@ export default function ResumePage() {
     try {
       const html2canvas = (await import("html2canvas")).default
       const { jsPDF } = await import("jspdf")
-      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" })
+
+      const element = previewRef.current
+      // Scroll element into view so html2canvas captures from y=0
+      element.scrollIntoView({ block: "start" })
+      await new Promise(r => setTimeout(r, 100)) // wait for scroll
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        onclone: (_doc, el) => {
+          el.style.minHeight = "auto"
+          el.style.height = "auto"
+        },
+      })
+
       const imgData = canvas.toDataURL("image/png")
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
       const pageWidth = pdf.internal.pageSize.getWidth()
       const pageHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = pageWidth
       const imgHeight = (canvas.height * pageWidth) / canvas.width
-      let y = 0
+
       if (imgHeight <= pageHeight) {
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
+        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight)
       } else {
-        // Multi-page support
-        let remaining = imgHeight
-        while (remaining > 0) {
-          pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight)
-          remaining -= pageHeight
-          y -= pageHeight
-          if (remaining > 0) pdf.addPage()
+        // Multi-page: slice canvas into A4-height chunks
+        const pageHeightPx = Math.floor((canvas.width * pageHeight) / pageWidth)
+        let yOffset = 0
+        while (yOffset < canvas.height) {
+          const sliceHeight = Math.min(pageHeightPx, canvas.height - yOffset)
+          const sliceCanvas = document.createElement("canvas")
+          sliceCanvas.width = canvas.width
+          sliceCanvas.height = sliceHeight
+          const ctx = sliceCanvas.getContext("2d")!
+          ctx.drawImage(canvas, 0, yOffset, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight)
+          const sliceData = sliceCanvas.toDataURL("image/png")
+          const sliceImgHeight = (sliceHeight * pageWidth) / canvas.width
+          if (yOffset > 0) pdf.addPage()
+          pdf.addImage(sliceData, "PNG", 0, 0, pageWidth, sliceImgHeight)
+          yOffset += pageHeightPx
         }
       }
+
       pdf.save(`${personal.name || "resume"}_${theme}.pdf`)
     } catch (e) {
       console.error("Export failed:", e)
