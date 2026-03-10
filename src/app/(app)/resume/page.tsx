@@ -246,7 +246,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           </div>
           {education.some(e => e.school) && (
             <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Education</h3>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Education</h3>
               {education.filter(e => e.school).map(edu => (
                 <div key={edu.id} className="mb-2">
                   <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
@@ -257,7 +257,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           )}
           {experience.some(e => e.company) && (
             <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Experience</h3>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Experience</h3>
               {experience.filter(e => e.company).map(exp => (
                 <div key={exp.id} className="mb-2">
                   <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
@@ -269,7 +269,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           )}
           {projects.some(p => p.name) && (
             <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Projects</h3>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Projects</h3>
               {projects.filter(p => p.name).map(proj => (
                 <div key={proj.id} className="mb-2">
                   <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
@@ -280,7 +280,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           )}
           {skills && (
             <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-2 py-1 rounded text-white text-[10px]" style={{ backgroundColor: accent }}>Skills</h3>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Skills</h3>
               <div className="flex flex-wrap gap-1">
                 {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
                   <span key={skill} className="text-xs border rounded px-1.5 py-0.5" style={{ borderColor: `${accent}50`, color: accent }}>{skill}</span>
@@ -327,11 +327,14 @@ export default function ResumePage() {
         logging: false,
         scrollX: 0,
         scrollY: -window.scrollY,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
+        windowWidth: element.offsetWidth,
+        windowHeight: element.offsetHeight,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
         onclone: (_doc, el) => {
           el.style.minHeight = "auto"
           el.style.height = "auto"
+          el.style.width = `${element.offsetWidth}px`
         },
       })
 
