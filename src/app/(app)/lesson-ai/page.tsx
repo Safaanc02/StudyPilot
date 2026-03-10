@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers, Loader2, Youtube, ExternalLink, History, ChevronRight } from "lucide-react"
+import {
+  Upload, FileText, Zap, BookOpen, HelpCircle, Brain, Layers,
+  Loader2, Youtube, ExternalLink, History, X, Clock, ChevronRight
+} from "lucide-react"
 
 interface StudyMaterials {
   summary: string
@@ -32,6 +35,18 @@ interface YoutubeVideo {
   channel: string
   thumbnail: string
   url: string
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 }
 
 export default function LessonAIPage() {
@@ -66,16 +81,9 @@ export default function LessonAIPage() {
         body: JSON.stringify({ text: inputText }),
       })
       const data = await res.json()
-      if (!res.ok || data.error) {
-        console.error("API error:", data.error)
-        return
-      }
+      if (!res.ok || data.error) { console.error("API error:", data.error); return }
       setMaterials(data)
-      // Refresh history
-      fetch("/api/lesson-ai")
-        .then((r) => r.json())
-        .then((d) => { if (d.analyses) setHistory(d.analyses) })
-        .catch(() => {})
+      fetch("/api/lesson-ai").then((r) => r.json()).then((d) => { if (d.analyses) setHistory(d.analyses) }).catch(() => {})
     } catch (err) {
       console.error(err)
     } finally {
@@ -104,6 +112,7 @@ export default function LessonAIPage() {
     setVideos([])
     setVideoError("")
     setShowHistory(false)
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleLoadVideos = async () => {
@@ -125,14 +134,71 @@ export default function LessonAIPage() {
   }
 
   const handleTabChange = (value: string) => {
-    if (value === "videos" && videos.length === 0 && !loadingVideos) {
-      handleLoadVideos()
-    }
+    if (value === "videos" && videos.length === 0 && !loadingVideos) handleLoadVideos()
   }
 
   return (
-    <div>
+    <div className="relative">
       <Header title="AI Lesson Tool" />
+
+      {/* History Drawer Overlay */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="flex-1 bg-black/40" onClick={() => setShowHistory(false)} />
+          <div className="w-80 bg-background border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <div className="flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">History</span>
+                {history.length > 0 && (
+                  <span className="bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">{history.length}</span>
+                )}
+              </div>
+              <button onClick={() => setShowHistory(false)} className="rounded-md p-1 hover:bg-accent transition-colors">
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Drawer content */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {history.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                  <History className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                  <p className="text-sm font-medium text-muted-foreground">No analyses yet</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Your saved lessons will appear here</p>
+                </div>
+              ) : (
+                history.map((item, index) => (
+                  <button
+                    key={item.id}
+                    onClick={() => loadFromHistory(item)}
+                    className="w-full text-left rounded-xl border bg-card hover:bg-accent hover:border-primary/30 transition-all p-3.5 group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-primary/60">#{history.length - index}</span>
+                          <p className="text-sm font-medium truncate leading-tight">{item.title}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.inputText}</p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <Clock className="h-3 w-3 text-muted-foreground/50" />
+                          <span className="text-xs text-muted-foreground/70">{timeAgo(item.createdAt)}</span>
+                          <span className="mx-1 text-muted-foreground/30">·</span>
+                          <span className="text-xs text-muted-foreground/70">{(item.result as StudyMaterials).flashcards?.length ?? 0} flashcards</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary shrink-0 mt-0.5 transition-colors" />
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="p-6 space-y-6">
         <div className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
@@ -141,42 +207,21 @@ export default function LessonAIPage() {
             <p className="text-sm text-muted-foreground">Upload or paste your lesson content and get instant study materials</p>
           </div>
           <Badge className="ml-auto">Pro Feature</Badge>
-          <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => setShowHistory(!showHistory)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1.5 shrink-0"
+            onClick={() => setShowHistory(true)}
+          >
             <History className="h-4 w-4" />
-            History {history.length > 0 && <Badge variant="secondary" className="ml-1 text-xs">{history.length}</Badge>}
+            History
+            {history.length > 0 && (
+              <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">
+                {history.length}
+              </span>
+            )}
           </Button>
         </div>
-
-        {/* History Panel */}
-        {showHistory && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" />Past Analyses</CardTitle>
-              <CardDescription>Click to reload a previous result</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {history.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No history yet.</p>
-              ) : (
-                history.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => loadFromHistory(item)}
-                    className="w-full flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors text-left"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {new Date(item.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </button>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        )}
 
         {/* Input */}
         <Card>
