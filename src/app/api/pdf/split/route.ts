@@ -32,9 +32,11 @@ export async function POST(req: NextRequest) {
     const pdf = await PDFDocument.load(bytes)
     const total = pdf.getPageCount()
 
-    // Multi-split: ranges separated by "|" → returns ZIP
-    if (mode === "split" && pagesInput?.includes("|")) {
-      const segments = pagesInput.split("|").map(s => s.trim()).filter(Boolean)
+    // Multi-split: in split mode, each comma-separated range becomes a separate PDF → ZIP
+    // Also supports "|" as separator for backwards compat
+    if (mode === "split" && pagesInput?.trim()) {
+      const separator = pagesInput.includes("|") ? "|" : ","
+      const segments = pagesInput.split(separator).map(s => s.trim()).filter(Boolean)
       const zip = new JSZip()
 
       for (let idx = 0; idx < segments.length; idx++) {

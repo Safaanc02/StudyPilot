@@ -58,9 +58,13 @@ function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`
 }
 
-// Detect if split input has multiple segments (e.g. "1-3 | 4-7 | 8-10")
+// In split mode, each comma-separated item is a separate PDF segment
+function splitSegments(input: string): string[] {
+  return input.split(",").map(s => s.trim()).filter(Boolean)
+}
+
 function isMultiSplit(input: string) {
-  return input.includes("|")
+  return splitSegments(input).length > 1
 }
 
 export default function PDFToolsPage() {
@@ -239,7 +243,7 @@ export default function PDFToolsPage() {
                     <span className="text-muted-foreground/60">(optional)</span>
                   </label>
                   <Input
-                    placeholder={activeTool === "split" ? "e.g. 1-3 | 4-7 | 8-10" : "e.g. 1-3, 5, 7-10"}
+                    placeholder={activeTool === "split" ? "e.g. 1-3, 4-7, 8-10" : "e.g. 1-3, 5, 7-10"}
                     value={pageRange}
                     onChange={e => setPageRange(e.target.value)}
                     className="text-sm font-mono"
@@ -247,13 +251,12 @@ export default function PDFToolsPage() {
                   {activeTool === "split" ? (
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">
-                        Separate ranges with <code className="bg-muted px-1 rounded">|</code> to get multiple PDFs in a ZIP.
-                        Leave empty to duplicate the whole PDF.
+                        Each range separated by a comma becomes a separate PDF. Leave empty to copy the whole PDF.
                       </p>
                       {isSplitMulti && (
                         <div className="flex items-center gap-1.5 text-xs text-purple-600 font-medium">
                           <FolderArchive className="h-3.5 w-3.5" />
-                          Will generate {pageRange.split("|").filter(s => s.trim()).length} PDFs → downloaded as ZIP
+                          Will generate {splitSegments(pageRange).length} PDFs → downloaded as ZIP
                         </div>
                       )}
                     </div>
