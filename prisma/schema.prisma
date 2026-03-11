@@ -22,6 +22,7 @@ model User {
   flashcards      Flashcard[]
   applications    InternshipApplication[]
   lessonAnalyses  LessonAnalysis[]
+  resumes         Resume[]
 }
 
 model Assignment {
@@ -77,6 +78,17 @@ model LessonAnalysis {
   inputText   String
   result      Json
   createdAt   DateTime @default(now())
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  theme     String   @default("classic")
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model InternshipApplication {

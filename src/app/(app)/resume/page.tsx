@@ -1,12 +1,12 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Download, UserCircle, Palette, Camera, Loader2 } from "lucide-react"
+import { Plus, Trash2, Download, UserCircle, Palette, Camera, Loader2, Save, FolderOpen, FileText, X, FilePlus2 } from "lucide-react"
 
 interface Education { id: string; school: string; degree: string; field: string; startYear: string; endYear: string; gpa: string }
 interface Experience { id: string; company: string; role: string; startDate: string; endDate: string; description: string }
@@ -294,6 +294,16 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
   )
 }
 
+interface SavedResume { id: string; title: string; theme: string; updatedAt: string }
+
+function timeAgo(date: string) {
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (s < 60) return "just now"
+  const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`
+  const d = Math.floor(h / 24); return `${d}d ago`
+}
+
 export default function ResumePage() {
   const [personal, setPersonal] = useState({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
   const [education, setEducation] = useState<Education[]>([{ id: "1", school: "", degree: "", field: "", startYear: "", endYear: "", gpa: "" }])
@@ -303,10 +313,96 @@ export default function ResumePage() {
   const [activeSection, setActiveSection] = useState("personal")
   const [theme, setTheme] = useState<ThemeId>("classic")
   const [exporting, setExporting] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null)
+  const [savedResumes, setSavedResumes] = useState<SavedResume[]>([])
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [loadingResume, setLoadingResume] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
 
   const sections = ["personal", "education", "experience", "projects", "skills"]
   const data: ResumeData = { personal, education, experience, projects, skills }
+
+  const fetchResumes = useCallback(async () => {
+    try {
+      const res = await fetch("/api/resumes")
+      if (res.ok) {
+        const json = await res.json()
+        setSavedResumes(json.resumes ?? [])
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { fetchResumes() }, [fetchResumes])
+
+  const handleSave = async () => {
+    if (!personal.name.trim()) return
+    setSaving(true)
+    try {
+      const body = {
+        ...(currentResumeId && { id: currentResumeId }),
+        title: personal.name,
+        theme,
+        data: { personal, education, experience, projects, skills },
+      }
+      const res = await fetch("/api/resumes", {
+        method: currentResumeId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setCurrentResumeId(json.resume.id)
+        fetchResumes()
+      }
+    } catch { /* ignore */ }
+    setSaving(false)
+  }
+
+  const handleLoad = async (id: string) => {
+    setLoadingResume(true)
+    try {
+      const res = await fetch(`/api/resumes/${id}`)
+      if (res.ok) {
+        const json = await res.json()
+        const r = json.resume
+        const d = r.data as ResumeData
+        setPersonal(d.personal)
+        setEducation(d.education)
+        setExperience(d.experience)
+        setProjects(d.projects)
+        setSkills(d.skills)
+        setTheme(r.theme as ThemeId)
+        setCurrentResumeId(r.id)
+        setDrawerOpen(false)
+      }
+    } catch { /* ignore */ }
+    setLoadingResume(false)
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch("/api/resumes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      })
+      if (currentResumeId === id) setCurrentResumeId(null)
+      fetchResumes()
+    } catch { /* ignore */ }
+  }
+
+  const handleNew = () => {
+    setPersonal({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
+    setEducation([{ id: "1", school: "", degree: "", field: "", startYear: "", endYear: "", gpa: "" }])
+    setExperience([])
+    setProjects([])
+    setSkills("")
+    setTheme("classic")
+    setCurrentResumeId(null)
+    setActiveSection("personal")
+    setDrawerOpen(false)
+  }
 
   const handleExport = async () => {
     if (!previewRef.current) return
@@ -390,10 +486,72 @@ export default function ResumePage() {
             <p className="text-sm text-muted-foreground">Build a professional resume with modern templates</p>
             <Badge className="ml-2">Pro Feature</Badge>
           </div>
-          <Button className="gap-2" onClick={handleExport} disabled={exporting}>
-            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" />Exporting...</> : <><Download className="h-4 w-4" />Export PDF</>}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setDrawerOpen(true)}>
+              <FolderOpen className="h-4 w-4" />My Resumes
+              {savedResumes.length > 0 && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{savedResumes.length}</Badge>}
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={handleSave} disabled={saving || !personal.name.trim()}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {currentResumeId ? "Update" : "Save"}
+            </Button>
+            <Button className="gap-2" onClick={handleExport} disabled={exporting}>
+              {exporting ? <><Loader2 className="h-4 w-4 animate-spin" />Exporting...</> : <><Download className="h-4 w-4" />Export PDF</>}
+            </Button>
+          </div>
         </div>
+
+        {/* My Resumes Drawer */}
+        {drawerOpen && (
+          <>
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={() => setDrawerOpen(false)} />
+            <div className="fixed right-0 top-0 h-full w-96 bg-background border-l z-50 shadow-xl flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-semibold text-sm">My Resumes</h3>
+                <button onClick={() => setDrawerOpen(false)} className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-muted"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="p-4">
+                <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleNew}>
+                  <FilePlus2 className="h-3.5 w-3.5" />New Resume
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+                {savedResumes.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">No saved resumes yet. Fill in your info and click Save.</p>
+                )}
+                {savedResumes.map(r => (
+                  <div
+                    key={r.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50 ${currentResumeId === r.id ? "border-primary bg-primary/5" : ""}`}
+                    onClick={() => handleLoad(r.id)}
+                  >
+                    <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{r.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground capitalize">{r.theme}</span>
+                        <span className="text-[10px] text-muted-foreground">{timeAgo(r.updatedAt)}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={e => { e.stopPropagation(); handleDelete(r.id) }}
+                      className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors shrink-0"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {loadingResume && (
+                <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Theme picker */}
         <div className="space-y-2">
