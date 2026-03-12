@@ -35,9 +35,9 @@ function Photo({ src, size = 56 }: { src: string; size?: number }) {
     <img
       src={src}
       alt="profile"
-      width={size}
-      height={size}
-      style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+      width={size * 2}
+      height={size * 2}
+      style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0, imageRendering: "auto" }}
     />
   )
 }
@@ -230,8 +230,15 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
 function ForestSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="w-full px-3 mb-2 flex items-center" style={{ backgroundColor: accent, height: 24 }}>
-        <span className="font-bold text-[10px] uppercase tracking-wide text-white leading-none">{title}</span>
+      <div
+        className="w-full px-3 mb-2"
+        style={{
+          backgroundColor: accent,
+          height: 26,
+          lineHeight: "26px",
+        }}
+      >
+        <span className="font-bold text-[11px] uppercase tracking-wide text-white">{title}</span>
       </div>
       <div className="px-4">{children}</div>
     </div>
