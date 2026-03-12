@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Briefcase, Building, Calendar } from "lucide-react"
+import { Plus, Trash2, Briefcase, Building, Calendar, Search, ExternalLink, Globe } from "lucide-react"
 
 type AppStatus = "Applied" | "Screening" | "Interview" | "Offer" | "Rejected" | "Withdrawn"
 
@@ -46,6 +46,35 @@ export default function InternshipsPage() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ company: "", position: "", status: "Applied" as AppStatus, appliedDate: "", interviewDate: "", notes: "" })
   const [filter, setFilter] = useState<AppStatus | "All">("All")
+  const [searchDomain, setSearchDomain] = useState("")
+  const [searchCity, setSearchCity] = useState("")
+
+  const searchLinks = searchDomain.trim() ? [
+    {
+      name: "Google",
+      icon: Globe,
+      color: "bg-blue-50 text-blue-700 hover:bg-blue-100",
+      url: `https://www.google.com/search?q=stage+${encodeURIComponent(searchDomain)}+${encodeURIComponent(searchCity)}+site:linkedin.com+OR+site:indeed.fr+OR+site:welcometothejungle.com`,
+    },
+    {
+      name: "LinkedIn",
+      icon: Briefcase,
+      color: "bg-sky-50 text-sky-700 hover:bg-sky-100",
+      url: `https://www.linkedin.com/jobs/search/?keywords=stage+${encodeURIComponent(searchDomain)}&location=${encodeURIComponent(searchCity)}`,
+    },
+    {
+      name: "Indeed",
+      icon: Search,
+      color: "bg-purple-50 text-purple-700 hover:bg-purple-100",
+      url: `https://fr.indeed.com/jobs?q=stage+${encodeURIComponent(searchDomain)}&l=${encodeURIComponent(searchCity)}`,
+    },
+    {
+      name: "Welcome to the Jungle",
+      icon: Building,
+      color: "bg-yellow-50 text-yellow-700 hover:bg-yellow-100",
+      url: `https://www.welcometothejungle.com/fr/jobs?query=stage+${encodeURIComponent(searchDomain)}&page=1&aroundQuery=${encodeURIComponent(searchCity)}`,
+    },
+  ] : []
 
   const addApp = () => {
     if (!form.company || !form.position) return
@@ -80,6 +109,51 @@ export default function InternshipsPage() {
             </Card>
           ))}
         </div>
+
+        {/* Search Internships */}
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Search className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Find Internships</p>
+                <p className="text-xs text-muted-foreground">Enter your field and city to search across platforms</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Domain (e.g. Développement Web, Data Science...)"
+                value={searchDomain}
+                onChange={e => setSearchDomain(e.target.value)}
+                className="flex-1"
+              />
+              <Input
+                placeholder="City (e.g. Casablanca, Paris...)"
+                value={searchCity}
+                onChange={e => setSearchCity(e.target.value)}
+                className="w-48"
+              />
+            </div>
+            {searchLinks.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {searchLinks.map(link => {
+                  const Icon = link.icon
+                  return (
+                    <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className={`gap-1.5 ${link.color} border-0`}>
+                        <Icon className="h-3.5 w-3.5" />
+                        {link.name}
+                        <ExternalLink className="h-3 w-3 opacity-50" />
+                      </Button>
+                    </a>
+                  )
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="flex items-center justify-between">
           <div className="flex gap-2 flex-wrap">
