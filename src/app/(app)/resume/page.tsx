@@ -227,69 +227,75 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
   )
 }
 
+function ForestSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="w-full px-3 py-1 mb-2" style={{ backgroundColor: accent }}>
+        <span className="font-bold text-[10px] uppercase tracking-wide text-white">{title}</span>
+      </div>
+      <div className="px-4">{children}</div>
+    </div>
+  )
+}
+
 function ResumePreviewForest({ data }: { data: ResumeData }) {
   const { personal, education, experience, projects, skills } = data
   const accent = "#166534"
   return (
-    <div className="text-sm">
+    <div className="text-sm space-y-4">
+      {/* Header with green left bar */}
       <div className="flex gap-0">
-        <div className="w-2 rounded-l-sm shrink-0" style={{ backgroundColor: accent }} />
-        <div className="flex-1 space-y-4 pl-4">
-          <div className="pb-3 border-b flex items-start gap-3" style={{ borderColor: `${accent}30` }}>
-            {personal.photo && <Photo src={personal.photo} size={52} />}
-            <div>
-              <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
-              <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-              <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-              {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
-            </div>
+        <div className="w-2 shrink-0" style={{ backgroundColor: accent }} />
+        <div className="flex-1 pl-4 pb-3 border-b flex items-start gap-3" style={{ borderColor: `${accent}30` }}>
+          {personal.photo && <Photo src={personal.photo} size={52} />}
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
+            <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
           </div>
-          {education.some(e => e.school) && (
-            <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Education</h3>
-              {education.filter(e => e.school).map(edu => (
-                <div key={edu.id} className="mb-2">
-                  <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
-                  <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          {experience.some(e => e.company) && (
-            <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Experience</h3>
-              {experience.filter(e => e.company).map(exp => (
-                <div key={exp.id} className="mb-2">
-                  <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
-                  <p className="text-xs font-medium" style={{ color: accent }}>{exp.company}</p>
-                  {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-          {projects.some(p => p.name) && (
-            <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Projects</h3>
-              {projects.filter(p => p.name).map(proj => (
-                <div key={proj.id} className="mb-2">
-                  <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
-                  {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-          {skills && (
-            <div>
-              <h3 className="font-bold text-xs uppercase tracking-wide mb-2 px-3 py-1 text-white text-[10px] -ml-4 -mr-0" style={{ backgroundColor: accent }}>Skills</h3>
-              <div className="flex flex-wrap gap-1">
-                {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                  <span key={skill} className="text-xs border rounded px-1.5 py-0.5" style={{ borderColor: `${accent}50`, color: accent }}>{skill}</span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
+      {education.some(e => e.school) && (
+        <ForestSection title="Education" accent={accent}>
+          {education.filter(e => e.school).map(edu => (
+            <div key={edu.id} className="mb-2">
+              <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+              <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+            </div>
+          ))}
+        </ForestSection>
+      )}
+      {experience.some(e => e.company) && (
+        <ForestSection title="Experience" accent={accent}>
+          {experience.filter(e => e.company).map(exp => (
+            <div key={exp.id} className="mb-2">
+              <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+              <p className="text-xs font-medium" style={{ color: accent }}>{exp.company}</p>
+              {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+            </div>
+          ))}
+        </ForestSection>
+      )}
+      {projects.some(p => p.name) && (
+        <ForestSection title="Projects" accent={accent}>
+          {projects.filter(p => p.name).map(proj => (
+            <div key={proj.id} className="mb-2">
+              <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+              {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+            </div>
+          ))}
+        </ForestSection>
+      )}
+      {skills && (
+        <ForestSection title="Skills" accent={accent}>
+          <div className="flex flex-wrap gap-1">
+            {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
+              <span key={skill} className="text-xs border rounded px-1.5 py-0.5" style={{ borderColor: `${accent}50`, color: accent }}>{skill}</span>
+            ))}
+          </div>
+        </ForestSection>
+      )}
     </div>
   )
 }
