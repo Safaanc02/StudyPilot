@@ -17,9 +17,12 @@ const THEMES = [
   { id: "modern", name: "Modern", accent: "#6366f1", preview: "bg-indigo-500", description: "Bold & colorful" },
   { id: "minimal", name: "Minimal", accent: "#0f172a", preview: "bg-slate-900", description: "Ultra clean" },
   { id: "forest", name: "Forest", accent: "#166534", preview: "bg-green-700", description: "Professional green" },
+  { id: "ocean", name: "Ocean", accent: "#0369a1", preview: "bg-sky-700", description: "Cool & professional" },
+  { id: "sunset", name: "Sunset", accent: "#c2410c", preview: "bg-orange-700", description: "Warm & bold" },
+  { id: "midnight", name: "Midnight", accent: "#312e81", preview: "bg-indigo-900", description: "Dark & elegant" },
 ]
 
-type ThemeId = "classic" | "modern" | "minimal" | "forest"
+type ThemeId = "classic" | "modern" | "minimal" | "forest" | "ocean" | "sunset" | "midnight"
 
 interface ResumeData {
   personal: { name: string; title: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string; photo: string }
@@ -299,6 +302,207 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           <p className="text-xs text-gray-700">{skills}</p>
         </ForestSection>
       )}
+    </div>
+  )
+}
+
+function OceanSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-2 pb-1" style={{ borderBottom: `2px solid ${accent}` }}>
+        <span className="font-bold text-xs uppercase tracking-wide" style={{ color: accent }}>{title}</span>
+      </div>
+      <div>{children}</div>
+    </div>
+  )
+}
+
+function ResumePreviewOcean({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  const accent = "#0369a1"
+  return (
+    <div className="text-sm" style={{ wordSpacing: 0 }}>
+      <div className="pb-3 mb-4" style={{ borderBottom: `3px solid ${accent}` }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {personal.photo && <Photo src={personal.photo} size={56} />}
+          <div>
+            <h2 className="text-2xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}{personal.title && <span className="font-normal text-sm text-gray-500"> — {personal.title}</span>}</h2>
+            <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2 text-gray-700 leading-relaxed">{personal.summary}</p>}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {education.some(e => e.school) && (
+          <OceanSection title="Education" accent={accent}>
+            {education.filter(e => e.school).map(edu => (
+              <div key={edu.id} className="mb-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+                <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+              </div>
+            ))}
+          </OceanSection>
+        )}
+        {experience.some(e => e.company) && (
+          <OceanSection title="Experience" accent={accent}>
+            {experience.filter(e => e.company).map(exp => (
+              <div key={exp.id} className="mb-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+                <p className="text-xs" style={{ color: accent }}>{exp.company}</p>
+                {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+              </div>
+            ))}
+          </OceanSection>
+        )}
+        {projects.some(p => p.name) && (
+          <OceanSection title="Projects" accent={accent}>
+            {projects.filter(p => p.name).map(proj => (
+              <div key={proj.id} className="mb-2">
+                <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+                {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+              </div>
+            ))}
+          </OceanSection>
+        )}
+        {skills && (
+          <OceanSection title="Skills" accent={accent}>
+            <p className="text-xs text-gray-700">{skills}</p>
+          </OceanSection>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ResumePreviewSunset({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  const accent = "#c2410c"
+  return (
+    <div className="text-sm" style={{ wordSpacing: 0 }}>
+      <div className="px-5 py-4 mb-4" style={{ background: `linear-gradient(135deg, ${accent}, #ea580c)` }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {personal.photo && <Photo src={personal.photo} size={56} />}
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: "#fff" }}>{personal.name || "Your Name"}{personal.title && <span className="font-normal text-sm" style={{ color: "#fed7aa" }}> — {personal.title}</span>}</h2>
+            <p className="text-xs mt-0.5" style={{ color: "#fed7aa" }}>{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs" style={{ color: "#fed7aa" }}>{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2" style={{ color: "#fff7ed" }}>{personal.summary}</p>}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {education.some(e => e.school) && (
+          <div>
+            <p className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: accent }}>Education</p>
+            {education.filter(e => e.school).map(edu => (
+              <div key={edu.id} className="mb-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+                <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {experience.some(e => e.company) && (
+          <div>
+            <p className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: accent }}>Experience</p>
+            {experience.filter(e => e.company).map(exp => (
+              <div key={exp.id} className="mb-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+                <p className="text-xs" style={{ color: accent }}>{exp.company}</p>
+                {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {projects.some(p => p.name) && (
+          <div>
+            <p className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: accent }}>Projects</p>
+            {projects.filter(p => p.name).map(proj => (
+              <div key={proj.id} className="mb-2">
+                <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+                {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {skills && (
+          <div>
+            <p className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: accent }}>Skills</p>
+            <p className="text-xs text-gray-700">{skills}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ResumePreviewMidnight({ data }: { data: ResumeData }) {
+  const { personal, education, experience, projects, skills } = data
+  const accent = "#312e81"
+  return (
+    <div className="text-sm" style={{ wordSpacing: 0 }}>
+      <div className="px-5 py-4 mb-4" style={{ backgroundColor: accent }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {personal.photo && <Photo src={personal.photo} size={56} />}
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: "#e0e7ff" }}>{personal.name || "Your Name"}{personal.title && <span className="font-normal text-sm" style={{ color: "#a5b4fc" }}> — {personal.title}</span>}</h2>
+            <p className="text-xs mt-0.5" style={{ color: "#a5b4fc" }}>{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs" style={{ color: "#a5b4fc" }}>{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2" style={{ color: "#c7d2fe" }}>{personal.summary}</p>}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {education.some(e => e.school) && (
+          <div>
+            <div className="mb-2 px-2 py-1" style={{ backgroundColor: `${accent}10` }}>
+              <span className="font-bold text-xs uppercase tracking-wide" style={{ color: accent }}>Education</span>
+            </div>
+            {education.filter(e => e.school).map(edu => (
+              <div key={edu.id} className="mb-2 px-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
+                <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {experience.some(e => e.company) && (
+          <div>
+            <div className="mb-2 px-2 py-1" style={{ backgroundColor: `${accent}10` }}>
+              <span className="font-bold text-xs uppercase tracking-wide" style={{ color: accent }}>Experience</span>
+            </div>
+            {experience.filter(e => e.company).map(exp => (
+              <div key={exp.id} className="mb-2 px-2">
+                <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
+                <p className="text-xs" style={{ color: accent }}>{exp.company}</p>
+                {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {projects.some(p => p.name) && (
+          <div>
+            <div className="mb-2 px-2 py-1" style={{ backgroundColor: `${accent}10` }}>
+              <span className="font-bold text-xs uppercase tracking-wide" style={{ color: accent }}>Projects</span>
+            </div>
+            {projects.filter(p => p.name).map(proj => (
+              <div key={proj.id} className="mb-2 px-2">
+                <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
+                {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {skills && (
+          <div>
+            <div className="mb-2 px-2 py-1" style={{ backgroundColor: `${accent}10` }}>
+              <span className="font-bold text-xs uppercase tracking-wide" style={{ color: accent }}>Skills</span>
+            </div>
+            <p className="text-xs text-gray-700 px-2">{skills}</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -736,6 +940,9 @@ export default function ResumePage() {
                     {theme === "modern" && <ResumePreviewModern data={data} />}
                     {theme === "minimal" && <ResumePreviewMinimal data={data} />}
                     {theme === "forest" && <ResumePreviewForest data={data} />}
+                    {theme === "ocean" && <ResumePreviewOcean data={data} />}
+                    {theme === "sunset" && <ResumePreviewSunset data={data} />}
+                    {theme === "midnight" && <ResumePreviewMidnight data={data} />}
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-full min-h-[400px] text-muted-foreground">
