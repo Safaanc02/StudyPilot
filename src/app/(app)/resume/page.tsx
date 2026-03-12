@@ -22,7 +22,7 @@ const THEMES = [
 type ThemeId = "classic" | "modern" | "minimal" | "forest"
 
 interface ResumeData {
-  personal: { name: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string; photo: string }
+  personal: { name: string; title: string; email: string; phone: string; location: string; linkedin: string; github: string; summary: string; photo: string }
   education: Education[]
   experience: Experience[]
   projects: Project[]
@@ -50,6 +50,7 @@ function ResumePreviewClassic({ data }: { data: ResumeData }) {
         {personal.photo && <Photo src={personal.photo} size={60} />}
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}</h2>
+          {personal.title && <p className="text-xs text-gray-500 mt-0.5">{personal.title}</p>}
           <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
           <p className="text-xs text-gray-600">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
           {personal.summary && <p className="text-xs mt-2 italic text-gray-700">{personal.summary}</p>}
@@ -128,6 +129,7 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
           {personal.photo && <Photo src={personal.photo} size={56} />}
           <div>
             <h2 className="text-xl font-bold" style={{ color: "#fff" }}>{personal.name || "Your Name"}</h2>
+            {personal.title && <p className="text-xs mt-0.5" style={{ color: "#e0e7ff" }}>{personal.title}</p>}
             <p className="text-xs mt-0.5" style={{ color: "#c7d2fe" }}>{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
             <p className="text-xs" style={{ color: "#c7d2fe" }}>{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
             {personal.summary && <p className="text-xs mt-2" style={{ color: "#e0e7ff" }}>{personal.summary}</p>}
@@ -188,6 +190,7 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
         {personal.photo && <Photo src={personal.photo} size={52} />}
         <div>
           <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}</h2>
+          {personal.title && <p className="text-xs text-gray-400 mt-0.5">{personal.title}</p>}
           <p className="text-xs mt-1 text-gray-400">{[personal.email, personal.phone, personal.location].filter(Boolean).join("  ·  ")}</p>
           {(personal.linkedin || personal.github) && <p className="text-xs text-gray-400">{[personal.linkedin, personal.github].filter(Boolean).join("  ·  ")}</p>}
           {personal.summary && <p className="text-xs mt-2 text-gray-600 leading-relaxed">{personal.summary}</p>}
@@ -257,6 +260,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
           {personal.photo && <Photo src={personal.photo} size={52} />}
           <div>
             <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
+            {personal.title && <p className="text-xs text-gray-500 mt-0.5">{personal.title}</p>}
             <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
             <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
             {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
@@ -318,7 +322,7 @@ function timeAgo(date: string) {
 }
 
 export default function ResumePage() {
-  const [personal, setPersonal] = useState({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
+  const [personal, setPersonal] = useState({ name: "", title: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
   const [education, setEducation] = useState<Education[]>([{ id: "1", school: "", degree: "", field: "", startYear: "", endYear: "", gpa: "" }])
   const [experience, setExperience] = useState<Experience[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -406,7 +410,7 @@ export default function ResumePage() {
   }
 
   const handleNew = () => {
-    setPersonal({ name: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
+    setPersonal({ name: "", title: "", email: "", phone: "", location: "", linkedin: "", github: "", summary: "", photo: "" })
     setEducation([{ id: "1", school: "", degree: "", field: "", startYear: "", endYear: "", gpa: "" }])
     setExperience([])
     setProjects([])
@@ -621,6 +625,7 @@ export default function ResumePage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <Input placeholder="Full Name" value={personal.name} onChange={e => setPersonal({ ...personal, name: e.target.value })} />
+                    <Input placeholder="Job Title (e.g. Software Engineer, Designer...)" value={personal.title} onChange={e => setPersonal({ ...personal, title: e.target.value })} />
                     <Input placeholder="Email" type="email" value={personal.email} onChange={e => setPersonal({ ...personal, email: e.target.value })} />
                     <Input placeholder="Phone" value={personal.phone} onChange={e => setPersonal({ ...personal, phone: e.target.value })} />
                     <Input placeholder="Location" value={personal.location} onChange={e => setPersonal({ ...personal, location: e.target.value })} />
