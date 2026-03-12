@@ -49,8 +49,7 @@ function ResumePreviewClassic({ data }: { data: ResumeData }) {
       <div className="text-center border-b-2 border-black pb-3 flex flex-col items-center gap-2">
         {personal.photo && <Photo src={personal.photo} size={60} />}
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}</h2>
-          {personal.title && <p className="text-xs text-gray-500 mt-0.5">{personal.title}</p>}
+          <h2 className="text-2xl font-bold tracking-tight">{personal.name || "Your Name"}{personal.title && <span className="font-normal text-gray-500"> — {personal.title}</span>}</h2>
           <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
           <p className="text-xs text-gray-600">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
           {personal.summary && <p className="text-xs mt-2 italic text-gray-700">{personal.summary}</p>}
@@ -128,8 +127,7 @@ function ResumePreviewModern({ data }: { data: ResumeData }) {
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {personal.photo && <Photo src={personal.photo} size={56} />}
           <div>
-            <h2 className="text-xl font-bold" style={{ color: "#fff" }}>{personal.name || "Your Name"}</h2>
-            {personal.title && <p className="text-xs mt-0.5" style={{ color: "#e0e7ff" }}>{personal.title}</p>}
+            <h2 className="text-xl font-bold" style={{ color: "#fff" }}>{personal.name || "Your Name"}{personal.title && <span className="font-normal text-sm" style={{ color: "#c7d2fe" }}> — {personal.title}</span>}</h2>
             <p className="text-xs mt-0.5" style={{ color: "#c7d2fe" }}>{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
             <p className="text-xs" style={{ color: "#c7d2fe" }}>{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
             {personal.summary && <p className="text-xs mt-2" style={{ color: "#e0e7ff" }}>{personal.summary}</p>}
@@ -189,8 +187,7 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
       <div className="flex items-start gap-4">
         {personal.photo && <Photo src={personal.photo} size={52} />}
         <div>
-          <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}</h2>
-          {personal.title && <p className="text-xs text-gray-400 mt-0.5">{personal.title}</p>}
+          <h2 className="text-2xl font-light tracking-tight">{personal.name || "Your Name"}{personal.title && <span className="text-gray-400 text-base"> — {personal.title}</span>}</h2>
           <p className="text-xs mt-1 text-gray-400">{[personal.email, personal.phone, personal.location].filter(Boolean).join("  ·  ")}</p>
           {(personal.linkedin || personal.github) && <p className="text-xs text-gray-400">{[personal.linkedin, personal.github].filter(Boolean).join("  ·  ")}</p>}
           {personal.summary && <p className="text-xs mt-2 text-gray-600 leading-relaxed">{personal.summary}</p>}
@@ -259,8 +256,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
         <div className="flex-1 pl-4 pb-3 border-b flex items-start gap-3" style={{ borderColor: `${accent}30` }}>
           {personal.photo && <Photo src={personal.photo} size={52} />}
           <div>
-            <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}</h2>
-            {personal.title && <p className="text-xs text-gray-500 mt-0.5">{personal.title}</p>}
+            <h2 className="text-xl font-bold" style={{ color: accent }}>{personal.name || "Your Name"}{personal.title && <span className="font-normal text-sm text-gray-500"> — {personal.title}</span>}</h2>
             <p className="text-xs mt-1 text-gray-600">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
             <p className="text-xs text-gray-500">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
             {personal.summary && <p className="text-xs mt-2 text-gray-700">{personal.summary}</p>}
