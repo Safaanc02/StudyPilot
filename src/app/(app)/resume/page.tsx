@@ -99,72 +99,81 @@ function ResumePreviewClassic({ data }: { data: ResumeData }) {
   )
 }
 
+function ModernSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div
+        className="w-full px-3 mb-2"
+        style={{
+          backgroundColor: `${accent}15`,
+          height: 24,
+          lineHeight: "24px",
+          borderLeft: `3px solid ${accent}`,
+        }}
+      >
+        <span className="font-bold text-[11px] uppercase tracking-wide" style={{ color: accent }}>{title}</span>
+      </div>
+      <div className="px-3">{children}</div>
+    </div>
+  )
+}
+
 function ResumePreviewModern({ data }: { data: ResumeData }) {
   const { personal, education, experience, projects, skills } = data
   const accent = "#6366f1"
   return (
-    <div className="text-sm space-y-0">
-      <div className="rounded-t-md px-6 py-4 mb-4 flex items-center gap-4" style={{ backgroundColor: accent }}>
-        {personal.photo && <Photo src={personal.photo} size={56} />}
-        <div>
-          <h2 className="text-xl font-bold text-white">{personal.name || "Your Name"}</h2>
-          <p className="text-xs text-indigo-200 mt-0.5">{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
-          <p className="text-xs text-indigo-200">{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
-          {personal.summary && <p className="text-xs text-indigo-100 mt-2">{personal.summary}</p>}
+    <div className="text-sm" style={{ wordSpacing: 0, letterSpacing: "normal" }}>
+      <div className="px-6 py-4 mb-4" style={{ backgroundColor: accent }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {personal.photo && <Photo src={personal.photo} size={56} />}
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: "#fff" }}>{personal.name || "Your Name"}</h2>
+            <p className="text-xs mt-0.5" style={{ color: "#c7d2fe" }}>{[personal.email, personal.phone, personal.location].filter(Boolean).join(" · ")}</p>
+            <p className="text-xs" style={{ color: "#c7d2fe" }}>{[personal.linkedin, personal.github].filter(Boolean).join(" · ")}</p>
+            {personal.summary && <p className="text-xs mt-2" style={{ color: "#e0e7ff" }}>{personal.summary}</p>}
+          </div>
         </div>
       </div>
-      <div className="space-y-3 px-1">
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {education.some(e => e.school) && (
-          <div>
-            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Education
-            </h3>
+          <ModernSection title="Education" accent={accent}>
             {education.filter(e => e.school).map(edu => (
-              <div key={edu.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+              <div key={edu.id} className="mb-2">
                 <div className="flex justify-between"><p className="font-semibold text-xs">{edu.school}</p><p className="text-xs text-gray-500">{edu.startYear}{edu.endYear && ` – ${edu.endYear}`}</p></div>
                 <p className="text-xs text-gray-600">{[edu.degree, edu.field].filter(Boolean).join(", ")}{edu.gpa && ` · GPA: ${edu.gpa}`}</p>
               </div>
             ))}
-          </div>
+          </ModernSection>
         )}
         {experience.some(e => e.company) && (
-          <div>
-            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Experience
-            </h3>
+          <ModernSection title="Experience" accent={accent}>
             {experience.filter(e => e.company).map(exp => (
-              <div key={exp.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+              <div key={exp.id} className="mb-2">
                 <div className="flex justify-between"><p className="font-semibold text-xs">{exp.role}</p><p className="text-xs text-gray-500">{exp.startDate}{exp.endDate && ` – ${exp.endDate}`}</p></div>
                 <p className="text-xs" style={{ color: accent }}>{exp.company}</p>
                 {exp.description && <p className="text-xs mt-1 text-gray-700">{exp.description}</p>}
               </div>
             ))}
-          </div>
+          </ModernSection>
         )}
         {projects.some(p => p.name) && (
-          <div>
-            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Projects
-            </h3>
+          <ModernSection title="Projects" accent={accent}>
             {projects.filter(p => p.name).map(proj => (
-              <div key={proj.id} className="mb-2 pl-4 border-l-2" style={{ borderColor: `${accent}40` }}>
+              <div key={proj.id} className="mb-2">
                 <p className="font-semibold text-xs">{proj.name}{proj.tech && <span className="font-normal text-gray-500"> · {proj.tech}</span>}</p>
                 {proj.description && <p className="text-xs text-gray-700">{proj.description}</p>}
               </div>
             ))}
-          </div>
+          </ModernSection>
         )}
         {skills && (
-          <div>
-            <h3 className="font-bold text-xs uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="inline-block w-3 h-0.5" style={{ backgroundColor: accent }} />Skills
-            </h3>
-            <div className="flex flex-wrap gap-1 pl-4">
+          <ModernSection title="Skills" accent={accent}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, paddingBottom: 8 }}>
               {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                <span key={skill} className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: accent }}>{skill}</span>
+                <span key={skill} className="text-xs" style={{ backgroundColor: accent, color: "#fff", padding: "2px 8px", borderRadius: 9999, display: "inline-block" }}>{skill}</span>
               ))}
             </div>
-          </div>
+          </ModernSection>
         )}
       </div>
     </div>
