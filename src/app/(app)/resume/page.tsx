@@ -611,7 +611,7 @@ export default function ResumePage() {
                         <span className="text-xs px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted transition-colors">
                           {personal.photo ? "Change photo" : "Upload photo"}
                         </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+                        <input type="file" accept="image/*" className="hidden" onClick={e => { (e.target as HTMLInputElement).value = "" }} onChange={handlePhoto} />
                       </label>
                       {personal.photo && (
                         <button onClick={() => setPersonal(p => ({ ...p, photo: "" }))} className="ml-2 text-xs text-destructive hover:underline">Remove</button>
