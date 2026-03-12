@@ -49,6 +49,16 @@
   }
 }
 
+/* Gender-based themes — override primary + ring */
+:root[data-gender="male"] {
+  --primary: 221 83% 40%;
+  --ring: 221 83% 40%;
+}
+:root[data-gender="female"] {
+  --primary: 340 75% 50%;
+  --ring: 340 75% 50%;
+}
+
 @layer base {
   * {
     @apply border-border;

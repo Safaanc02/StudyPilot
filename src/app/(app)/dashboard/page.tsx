@@ -1,3 +1,4 @@
+"use client"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +9,8 @@ import {
   TrendingUp, Clock, Target, Bell
 } from "lucide-react"
 import Link from "next/link"
+import { useUser } from "@clerk/nextjs"
+import { useGender } from "@/components/gender-provider"
 
 const stats = [
   { label: "Study Hours This Week", value: "12.5h", icon: Clock, change: "+2h from last week" },
@@ -36,13 +39,22 @@ const quickActions = [
 ]
 
 export default function DashboardPage() {
+  const { user } = useUser()
+  const gender = useGender()
+  const firstName = user?.firstName ?? "Student"
+  const greeting = gender === "female"
+    ? `Hey ${firstName}! 💕`
+    : gender === "male"
+      ? `Hey ${firstName}! 💪`
+      : `Good morning, ${firstName}!`
+
   return (
     <div>
       <Header title="Dashboard" />
       <div className="p-6 space-y-6">
         {/* Welcome */}
         <div>
-          <h2 className="text-2xl font-bold">Good morning, Student!</h2>
+          <h2 className="text-2xl font-bold">{greeting}</h2>
           <p className="text-muted-foreground">You have 3 assignments due this week and 2 upcoming exams.</p>
         </div>
 
