@@ -296,11 +296,7 @@ function ResumePreviewForest({ data }: { data: ResumeData }) {
       )}
       {skills && (
         <ForestSection title="Skills" accent={accent}>
-          <div className="flex flex-wrap gap-1">
-            {skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-              <span key={skill} className="text-xs border rounded px-1.5 py-0.5" style={{ borderColor: `${accent}50`, color: accent }}>{skill}</span>
-            ))}
-          </div>
+          <p className="text-xs text-gray-700">{skills}</p>
         </ForestSection>
       )}
     </div>
@@ -439,8 +435,11 @@ export default function ResumePage() {
         windowWidth: element.offsetWidth,
         width: element.offsetWidth,
         onclone: (_doc, el) => {
-          el.style.minHeight = "auto"
+          el.style.minHeight = "0"
           el.style.height = "auto"
+          el.style.overflow = "visible"
+          el.style.border = "none"
+          el.style.borderRadius = "0"
           el.style.width = `${element.offsetWidth}px`
         },
       })
