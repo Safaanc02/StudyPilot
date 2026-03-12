@@ -239,17 +239,8 @@ function ResumePreviewMinimal({ data }: { data: ResumeData }) {
 function ForestSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   return (
     <div>
-      <div
-        className="w-full px-3 mb-2"
-        style={{
-          backgroundColor: accent,
-          height: 26,
-          lineHeight: "26px",
-        }}
-      >
-        <span className="font-bold text-[11px] uppercase tracking-wide text-white">{title}</span>
-      </div>
-      <div className="px-4">{children}</div>
+      <p className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: accent }}>{title}</p>
+      <div>{children}</div>
     </div>
   )
 }
