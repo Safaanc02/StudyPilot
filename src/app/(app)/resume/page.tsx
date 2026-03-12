@@ -437,9 +437,7 @@ export default function ResumePage() {
         scrollX: 0,
         scrollY: -window.scrollY,
         windowWidth: element.offsetWidth,
-        windowHeight: element.offsetHeight,
         width: element.offsetWidth,
-        height: element.offsetHeight,
         onclone: (_doc, el) => {
           el.style.minHeight = "auto"
           el.style.height = "auto"
