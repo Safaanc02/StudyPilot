@@ -10,7 +10,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useUser } from "@clerk/nextjs"
-import { useGender } from "@/components/gender-provider"
 
 const stats = [
   { label: "Study Hours This Week", value: "12.5h", icon: Clock, change: "+2h from last week" },
@@ -40,13 +39,8 @@ const quickActions = [
 
 export default function DashboardPage() {
   const { user } = useUser()
-  const gender = useGender()
   const firstName = user?.firstName ?? "Student"
-  const greeting = gender === "female"
-    ? `Hey ${firstName}! 💕`
-    : gender === "male"
-      ? `Hey ${firstName}! 💪`
-      : `Good morning, ${firstName}!`
+  const greeting = `Good morning, ${firstName}!`
 
   return (
     <div>
